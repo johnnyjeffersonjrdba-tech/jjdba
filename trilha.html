@@ -1,0 +1,12 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guias de Estudo</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="wrap"><section class="hero"><span class="tag">Guias</span><h1 id="h">Guias de estudo</h1><p>Os artigos de cada certificação na ordem ideal de leitura. Novas partes são adicionadas toda semana.</p></section>
+<div id="t"></div></main>
+<script src="posts.js"></script><script src="layout.js"></script><script>
+const publicados = visiveis.filter(p => p.serie);
+const nomes = { '1Z0-082': 'Oracle Database Administration I' };
+document.getElementById('t').innerHTML = [...new Set(publicados.map(p => p.serie))].map(s =>
+  `<h2>Guia ${s} <span class="meta" style="font-family:Inter">— ${nomes[s] || ''}</span></h2>` +
+  publicados.filter(p => p.serie === s).sort((a, b) => a.parte - b.parte).map(p =>
+    `<div class="card step done"><div class="n">${p.parte}</div><div><h3 style="margin:4px 0"><a href="post.html?id=${p.id}">${p.titulo}</a></h3><p class="meta" style="margin:0">${p.resumo}</p></div></div>`).join('')
+).join('');
+</script></body></html>

@@ -1,0 +1,21 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JJ DBA</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="wrap">
+  <section class="home">
+    <div class="prompt"><b>SQL&gt;</b> SELECT autor, foco FROM jj_dba;</div>
+    <h1>Johnny Jefferson Jr.<br><span>Oracle DBA</span> — estudos &amp; projetos reais<span class="cur"></span></h1>
+    <p class="l">Toda semana publico o que estudo para certificações Oracle e o passo a passo dos projetos que executo em clientes: instalações, migrações, Data Guard e troubleshooting.</p>
+    <p style="margin-top:24px"><a class="btn f" href="blog.html">./ler-artigos</a>&nbsp; <a class="btn" href="sobre.html">./sobre</a></p>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="sec"><h2>ultimos_artigos</h2><div id="ult"></div><p><a href="blog.html">ver todos →</a></p></section>
+
+  <section class="sec"><h2>certificacoes</h2><div id="certs"></div><p><a href="certificacoes.html">linha do tempo completa →</a></p></section>
+</main>
+<script src="posts.js"></script><script src="layout.js"></script><script>
+const ok = CERTS.filter(c => c.status === 'ok').length;
+stats.innerHTML = `<span><b>${ok}</b> certificações Oracle</span><span><b>${visiveis.length}</b> artigos</span><span><b>1</b> novo por semana</span>`;
+ult.innerHTML = visiveis.slice(0, 5).map(p => `<a class="row" href="post.html?id=${p.id}"><span class="meta">${p.data}</span><b>${p.titulo}</b><span class="meta">${p.tipo === 'pratica' ? '[na-pratica]' : '[estudo]'}</span></a>`).join('')
+  || '<p class="meta">-- 0 rows selected. O primeiro artigo sai em breve.</p>';
+certs.innerHTML = CERTS.filter(c => c.status !== 'planejada').map(c => `<div class="row" style="grid-template-columns:110px 1fr auto"><span class="meta">${c.data}</span><span>${c.nome}</span><span class="meta" style="color:${c.status === 'ok' ? 'var(--accent)' : 'var(--muted)'}">${c.status === 'ok' ? '✔ ok' : '… em andamento'}</span></div>`).join('');
+</script></body></html>
