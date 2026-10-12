@@ -19,7 +19,10 @@
   </div>
 </main>
 <script src="posts.js"></script><script src="layout.js"></script><script>
-dados.then(() => {
+const exemplo = location.hostname === 'localhost' && qs.has('exemplo');
+const pronto = exemplo ? new Promise(r => { const s = document.createElement('script'); s.src = 'exemplos.js'; s.onload = r; document.head.appendChild(s); }) : Promise.resolve();
+Promise.all([dados, pronto]).then(() => {
+if (exemplo) { visiveis = EXEMPLOS; document.body.insertAdjacentHTML('afterbegin', '<div style="background:#ffb02e;color:#111;text-align:center;font-size:12px;padding:5px"><b>PRÉVIA</b> — artigos de exemplo</div>'); }
 
 const ok = CERTS.filter(c => c.status === 'ok').length;
 stats.innerHTML = `<span><b>${ok}</b> certificações Oracle</span><span><b>${visiveis.length}</b> artigos</span><span><b>1</b> novo por semana</span>`;
@@ -30,7 +33,7 @@ function render(busca = '') {
 }
 render();
 q.oninput = e => render(e.target.value.toLowerCase());
-cats.innerHTML = TEMAS.map(t => `<a class="catl" href="blog.html?tema=${encodeURIComponent(t)}">${t}<span>${visiveis.filter(p => p.temas.includes(t)).length}</span></a>`).join('');
+cats.innerHTML = TEMAS.map(t => `<a class="catl" href="temas.html?tema=${encodeURIComponent(t)}">${t}<span>${visiveis.filter(p => p.temas.includes(t)).length}</span></a>`).join('');
 
 });
 </script></body></html>

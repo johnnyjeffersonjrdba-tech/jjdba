@@ -1,0 +1,27 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artigos por Tema</title><link rel="stylesheet" href="style.css">
+<style>
+.tbar{position:sticky;top:71px;z-index:4;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.tbar a{border:1px solid var(--line);border-radius:4px;padding:3px 10px;font-size:13px;color:var(--ink)}.tbar a span{color:var(--muted);margin-left:5px}
+.tbar a:hover,.tbar a.on{border-color:var(--accent);color:var(--accent);text-decoration:none}
+.tsec{padding-top:34px;scroll-margin-top:130px}.tsec h2{font-size:20px;margin:0 0 18px;display:flex;align-items:baseline;gap:10px}.tsec h2:before{content:'#';color:var(--accent)}.tsec h2 small{font-size:13px;color:var(--muted);font-weight:400}
+.vazio{color:var(--muted);font-size:13px}
+</style></head><body>
+<main class="wrap wide">
+  <section class="hero" style="padding-bottom:6px"><span class="tag">Temas</span><h1>Artigos por tema</h1><p>Escolha um assunto e veja tudo o que já publiquei sobre ele — estudos e projetos reais.</p></section>
+  <nav class="tbar" id="tbar"></nav>
+  <div id="secoes"></div>
+</main>
+<script src="posts.js"></script><script src="layout.js"></script><script>
+const exemplo = location.hostname === 'localhost' && qs.has('exemplo');
+const pronto = exemplo ? new Promise(r => { const s = document.createElement('script'); s.src = 'exemplos.js'; s.onload = r; document.head.appendChild(s); }) : Promise.resolve();
+Promise.all([dados, pronto]).then(() => {
+  const lista = exemplo ? EXEMPLOS : visiveis;
+  if (exemplo) document.body.insertAdjacentHTML('afterbegin', '<div style="background:#ffb02e;color:#111;text-align:center;font-size:12px;padding:5px"><b>PRÉVIA</b> — artigos de exemplo</div>');
+  const usados = TEMAS.map(t => [t, lista.filter(p => p.temas.includes(t))]).filter(([, ps]) => ps.length);
+  const sel = qs.get('tema');
+  tbar.innerHTML = `<a href="temas.html${exemplo ? '?exemplo' : ''}" class="${sel ? '' : 'on'}">todos</a>` + TEMAS.map(t => { const n = lista.filter(p => p.temas.includes(t)).length; return `<a href="?tema=${encodeURIComponent(t)}${exemplo ? '&exemplo' : ''}" class="${t === sel ? 'on' : ''}">${t}<span>${n}</span></a>`; }).join('');
+  const mostrar = sel ? usados.filter(([t]) => t === sel) : usados;
+  secoes.innerHTML = mostrar.map(([t, ps]) => `<section class="tsec" id="${encodeURIComponent(t)}"><h2>${t} <small>${ps.length} artigo${ps.length > 1 ? 's' : ''}</small></h2>${ps.map(cardPost).join('')}</section>`).join('')
+    || `<p class="vazio" style="padding-top:30px">-- 0 rows selected. ${sel ? 'Ainda não há artigos sobre ' + sel + '.' : 'Os primeiros artigos saem em breve.'}</p>`;
+});
+</script></body></html>
