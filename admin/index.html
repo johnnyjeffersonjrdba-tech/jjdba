@@ -153,7 +153,10 @@ $('colar').onclick = async () => { try { $('tok').value = (await navigator.clipb
 $('ver').onclick = () => { const t = $('tok'); t.style.webkitTextSecurity = t.style.webkitTextSecurity === 'none' ? 'disc' : 'none'; };
 $('tok').onkeydown = e => e.key === 'Enter' && $('entrar').click();
 $('sair').onclick = () => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} location.reload(); };
-try { const t = localStorage.getItem('jjdba-token'); if (t) entrar(t).catch(() => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} }); } catch (e) {}
+// No painel local (Abrir painel do blog.cmd) o login do GitHub deste PC é usado automaticamente.
+if (location.port === '5181') fetch('/api/token').then(r => r.json()).then(j => { if (!j.token) throw new Error(j.erro); return entrar(j.token); })
+  .catch(e => { $('lerr').textContent = 'Login automático falhou: ' + e.message; });
+else try { const t = localStorage.getItem('jjdba-token'); if (t) entrar(t).catch(() => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} }); } catch (e) {}
 
 // ---------- posts ----------
 async function carregar() {
