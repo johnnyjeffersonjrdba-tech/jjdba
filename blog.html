@@ -35,12 +35,7 @@ let busca = '';
 function render() {
   const lista = visiveis.filter(p => (!tipo || p.tipo === tipo) && (!tema || p.temas.includes(tema)) &&
     (p.titulo + p.resumo + p.temas.join(' ')).toLowerCase().includes(busca));
-  document.getElementById('lista').innerHTML = lista.map((p, i) => {
-    const rot = p.tipo === 'pratica' ? 'Na prática' : (p.serie ? 'Guia ' + p.serie : 'Estudo');
-    const grande = p.parte ? '#' + p.parte : (p.tipo === 'pratica' ? '⚙' : '★');
-    return `<div class="feat"><a href="post.html?id=${p.id}${verRascunhos ? '&rascunhos' : ''}" class="cover ${p.tipo === 'pratica' ? 'c2' : cores[i % 4]}" style="text-decoration:none"><span class="sm">${rot}</span><div><div class="wk">${grande}</div><span class="sm">${p.temas.slice(0, 3).join(' · ')}</span></div></a>
-      <div><h2><a href="post.html?id=${p.id}${verRascunhos ? '&rascunhos' : ''}">${p.titulo}</a></h2><span class="meta">${fmt(p.data)}${p.rascunho ? ' · <b style="color:var(--accent)">RASCUNHO</b>' : ''}</span><p class="meta" style="margin:6px 0">${p.resumo}</p>${p.temas.map(t => `<a class="chip" href="blog.html?tema=${encodeURIComponent(t)}" style="text-decoration:none">${t}</a>`).join('')}</div></div>`;
-  }).join('') || `<div class="card"><p class="meta" style="margin:0">-- 0 rows selected. O primeiro artigo desta seção sai em breve.</p></div>`;
+  document.getElementById('lista').innerHTML = lista.map(cardPost).join('') || `<div class="card"><p class="meta" style="margin:0">-- 0 rows selected. O primeiro artigo desta seção sai em breve.</p></div>`;
 }
 document.getElementById('cats').innerHTML = TEMAS.map(t => { const n = visiveis.filter(p => p.temas.includes(t)).length; return `<a class="catl ${t === tema ? 'on' : ''}" href="blog.html?tema=${encodeURIComponent(t)}">${t}<span>${n}</span></a>`; }).join('');
 q.oninput = e => { busca = e.target.value.toLowerCase(); render(); };

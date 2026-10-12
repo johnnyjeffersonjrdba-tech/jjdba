@@ -69,7 +69,11 @@ ol.passos{color:var(--muted);font-size:13px;padding-left:18px}ol.passos li{margi
       <div class="top2"><h1 id="edTit">Novo post</h1><span class="meta" id="auto"></span></div>
       <div class="ed"><div>
         <label>Título</label><input id="f-titulo">
-        <label>Resumo (aparece na lista)</label><input id="f-resumo">
+        <label>Imagem de capa (aparece na lista, formato 16:9)</label>
+        <div style="display:flex;gap:10px;align-items:center"><div id="capaPrev" class="pimg" style="width:160px;flex:none"></div>
+          <div style="flex:1"><button class="btn" id="bCapa" type="button">Enviar imagem</button> <a style="cursor:pointer;font-size:12px" id="rmCapa">remover</a><input type="file" id="fCapa" accept="image/*" hidden>
+          <input id="f-capa" placeholder="ou cole o link de uma imagem" style="margin-top:6px"></div></div>
+        <label>Resumo (1 a 2 frases que aparecem na lista) *</label><textarea id="f-resumo" style="min-height:60px"></textarea>
         <div style="display:flex;gap:10px"><div style="flex:1"><label>Tipo</label><select id="f-tipo"><option value="pratica">Na prática</option><option value="estudo">Estudo</option></select></div>
           <div style="flex:1"><label>Data de publicação</label><input type="date" id="f-data"></div></div>
         <div style="display:flex;gap:10px"><div style="flex:1"><label>Série (opcional)</label><input id="f-serie" placeholder="1Z0-082"></div><div style="width:90px"><label>Parte</label><input type="number" id="f-parte" min="1"></div></div>
@@ -172,7 +176,7 @@ function renderLista() {
   $('lista').querySelectorAll('[data-ed]').forEach(a => a.onclick = () => abrir(posts[+a.dataset.ed]));
 }
 $('f-temas').innerHTML = TEMAS.map(t => `<label><input type="checkbox" value="${t}">${t}</label>`).join('');
-const campos = ['titulo', 'resumo', 'tipo', 'data', 'serie', 'parte', 'md'];
+const campos = ['titulo', 'capa', 'resumo', 'tipo', 'data', 'serie', 'parte', 'md'];
 function abrir(p) {
   atual = p || null;
   const d = p || (() => { try { return JSON.parse(localStorage.getItem('jjdba-novo') || 'null'); } catch (e) { return null; } })() || { tipo: 'pratica', data: hoje(), md: MODELOS.pratica, temas: [] };
@@ -189,6 +193,7 @@ function lerForm() {
 }
 function prev() {
   const o = lerForm();
+  $('capaPrev').innerHTML = (o.capa ? `<img src="${o.capa.startsWith('http') ? o.capa : '../' + o.capa}" alt="">` : `<div class="capa auto"><span class="sm">${o.tipo === 'pratica' ? '~/na-pratica' : '~/estudos'}</span><b>${esc(o.titulo) || 'capa automática'}</b><span class="sm">$ jj_dba</span></div>`) + (o.temas.length ? `<span class="ptemas">${o.temas.slice(0, 2).join(', ')}</span>` : '');
   $('prev').innerHTML = `<span class="tag">${o.tipo === 'pratica' ? 'Na prática' : 'Estudo'}</span><h1 style="font-size:22px">${esc(o.titulo) || 'Título'}</h1>${o.temas.map(t => `<span class="chip">${t}</span>`).join('')}${marked.parse(o.md.replace(/\]\(img\//g, '](../img/'))}`;
   if (!atual) { try { localStorage.setItem('jjdba-novo', JSON.stringify(o)); $('auto').textContent = 'rascunho local salvo ✓'; } catch (e) {} }
 }
@@ -201,13 +206,15 @@ document.querySelectorAll('[data-acao]').forEach(b => b.onclick = () => ocupado(
   const o = lerForm();
   if (!o.titulo.trim()) return toast('Preencha o título.', 'err');
   if (!o.data) return toast('Preencha a data.', 'err');
+  if (b.dataset.acao !== 'rascunho' && !o.resumo.trim()) return toast('Escreva o resumo: ele aparece na lista de posts.', 'err');
+  if (b.dataset.acao !== 'rascunho' && !o.temas.length) return toast('Escolha pelo menos um tema.', 'err');
   o.rascunho = b.dataset.acao === 'rascunho';
   const { dados } = await lerJSON('data/posts.json');  // relê para não sobrescrever mudanças
   const idAntigo = atual && atual.id;
   o.id = idAntigo || slug(o.titulo);
   if (!idAntigo) { let base = o.id, n = 2; while (dados.some(p => p.id === o.id)) o.id = base + '-' + n++; }
   const lista = dados.filter(p => p.id !== idAntigo);
-  const post = { id: o.id, tipo: o.tipo, temas: o.temas, data: o.data, titulo: o.titulo.trim(), resumo: o.resumo.trim(), ...(o.serie ? { serie: o.serie, parte: o.parte || 1 } : {}), ...(o.rascunho ? { rascunho: true } : {}), md: o.md };
+  const post = { id: o.id, tipo: o.tipo, temas: o.temas, data: o.data, titulo: o.titulo.trim(), ...(o.capa.trim() ? { capa: o.capa.trim() } : {}), resumo: o.resumo.trim(), ...(o.serie ? { serie: o.serie, parte: o.parte || 1 } : {}), ...(o.rascunho ? { rascunho: true } : {}), md: o.md };
   lista.push(post);
   await gravarJSON('data/posts.json', lista, `${o.rascunho ? 'rascunho' : 'publica'}: ${post.titulo}`);
   if (!atual) try { localStorage.removeItem('jjdba-novo'); } catch (e) {}
@@ -231,11 +238,15 @@ async function enviar(files) {
     const buf = new Uint8Array(await f.arrayBuffer()); let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
     const nome = `img/posts/${Date.now()}-${slug(f.name.replace(/\.[^.]+$/, ''))}.${(f.name.split('.').pop() || 'png').toLowerCase()}`;
     await gravar(nome, btoa(bin), `imagem: ${f.name}`);
+    if (f._capa) { $('f-capa').value = nome; prev(); toast('Capa enviada.'); continue; }
     const ta = $('f-md'), pos = ta.selectionStart ?? ta.value.length, ins = `\n![${f.name.replace(/\.[^.]+$/, '')}](${nome})\n`;
     ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(pos); prev();
     toast('Imagem enviada e inserida no texto.');
   }
 }
+$('bCapa').onclick = () => $('fCapa').click();
+$('fCapa').onchange = e => { const f = e.target.files[0]; if (f) { f._capa = true; ocupado($('bCapa'), () => enviar([f])); } e.target.value = ''; };
+$('rmCapa').onclick = () => { $('f-capa').value = ''; prev(); };
 const drop = $('drop');
 drop.onclick = () => $('file').click();
 $('file').onchange = e => ocupado(null, () => enviar([...e.target.files]));

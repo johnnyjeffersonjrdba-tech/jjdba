@@ -15,3 +15,9 @@ const dados = Promise.all(['data/posts.json', 'data/certs.json'].map(u => fetch(
     CERTS = c;
     visiveis = POSTS.filter(p => verRascunhos || (!p.rascunho && p.data <= hoje));
   });
+
+// Cartão de post (imagem + temas + título + data + resumo). Sem capa, gera uma automática.
+const capaAuto = p => `<div class="capa auto"><span class="sm">${p.tipo === 'pratica' ? '~/na-pratica' : '~/estudos'}</span><b>${p.titulo}</b><span class="sm">$ jj_dba</span></div>`;
+const cardPost = p => `<a class="pcard" href="post.html?id=${encodeURIComponent(p.id)}">
+  <div class="pimg">${p.capa ? `<img src="${p.capa}" alt="" loading="lazy">` : capaAuto(p)}<span class="ptemas">${p.temas.slice(0, 2).join(', ')}</span></div>
+  <div class="ptxt"><h3>${p.titulo}</h3><span class="meta">${fmt(p.data)}${p.rascunho ? ' · <b style="color:#ffb02e">RASCUNHO</b>' : ''}</span><p>${p.resumo}</p></div></a>`;
