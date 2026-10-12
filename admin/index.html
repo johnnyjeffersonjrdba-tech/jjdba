@@ -34,7 +34,7 @@ ol.passos{color:var(--muted);font-size:13px;padding-left:18px}ol.passos li{margi
   <h2 style="margin:18px 0 4px">Área administrativa</h2>
   <p class="meta">Acesso restrito. Só contas com permissão de escrita no repositório <b>jjdba</b> conseguem entrar.</p>
   <label class="lbl">Token de acesso do GitHub</label>
-  <input id="tok" type="password" placeholder="github_pat_…" autocomplete="off">
+  <div style="display:flex;gap:6px"><input id="tok" type="text" placeholder="github_pat_…" autocomplete="off" spellcheck="false" style="-webkit-text-security:disc"><button class="btn" id="colar" type="button">Colar</button><button class="btn" id="ver" type="button" title="mostrar/ocultar">👁</button></div>
   <label class="tg" style="margin-top:8px"><label><input type="checkbox" id="lembrar" checked>lembrar neste navegador</label></label>
   <p><button class="btn f" id="entrar" style="width:100%;margin-top:10px">Entrar</button></p>
   <p class="meta" id="lerr" style="color:#ff5f56"></p>
@@ -135,7 +135,8 @@ async function ocupado(btn, fn) { const b = btn; b && (b.disabled = true); try {
 
 // ---------- login ----------
 async function entrar(tok) {
-  TOKEN = tok.trim();
+  TOKEN = tok.replace(/\s+/g, '');
+  if (!TOKEN) throw new Error('Cole o token no campo acima.');
   const repo = await gh(`/repos/${OWNER}/${REPO}`);
   if (!repo.permissions || !repo.permissions.push) throw new Error('acesso negado: este token não pode publicar no blog');
   let nome = OWNER; try { nome = (await gh('/user')).login; } catch (e) {}
@@ -146,8 +147,10 @@ async function entrar(tok) {
 $('entrar').onclick = () => ocupado($('entrar'), async () => {
   $('lerr').textContent = '';
   try { await entrar($('tok').value); if ($('lembrar').checked) try { localStorage.setItem('jjdba-token', TOKEN); } catch (e) {} }
-  catch (e) { TOKEN = ''; $('lerr').textContent = e.status === 401 ? 'Token inválido ou expirado.' : e.status === 404 ? 'acesso negado: token sem acesso ao repositório jjdba' : e.message; }
+  catch (e) { TOKEN = ''; $('lerr').textContent = e.status === 401 ? 'O GitHub recusou este token. Confira se copiou o texto inteiro (começa com github_pat_) ou gere um novo.' : e.status === 404 ? 'acesso negado: token sem acesso ao repositório jjdba' : e.message; }
 });
+$('colar').onclick = async () => { try { $('tok').value = (await navigator.clipboard.readText()).trim(); $('lerr').textContent = ''; } catch (e) { $('lerr').textContent = 'O navegador bloqueou o botão Colar. Clique no campo e use Ctrl+V (ou botão direito → Colar).'; } };
+$('ver').onclick = () => { const t = $('tok'); t.style.webkitTextSecurity = t.style.webkitTextSecurity === 'none' ? 'disc' : 'none'; };
 $('tok').onkeydown = e => e.key === 'Enter' && $('entrar').click();
 $('sair').onclick = () => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} location.reload(); };
 try { const t = localStorage.getItem('jjdba-token'); if (t) entrar(t).catch(() => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} }); } catch (e) {}
