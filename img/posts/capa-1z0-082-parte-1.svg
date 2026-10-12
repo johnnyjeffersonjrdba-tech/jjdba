@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#39ff88" stroke-opacity=".06"/></pattern>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#39ff88"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffb02e"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5fd3ff"/></marker>
+    <marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b8c2bb"/></marker>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#grid)"/>
+
+  <!-- título -->
+  <text x="48" y="62" font-size="20" fill="#39ff88">GUIA 1Z0-082 · PARTE 1</text>
+  <text x="48" y="112" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="#fff">Arquitetura do Oracle Database</text>
+  <text x="48" y="146" font-size="18" fill="#7f9686">instância · SGA · PGA · processos de background · arquivos do banco</text>
+
+  <!-- cliente / server process / PGA -->
+  <rect x="48" y="200" width="120" height="48" rx="8" fill="#121a15" stroke="#e6ede8" stroke-width="2"/>
+  <text x="108" y="230" text-anchor="middle" font-size="16" fill="#e6ede8">cliente</text>
+  <path d="M108 248v34" stroke="#b8c2bb" stroke-width="2" marker-end="url(#w)"/>
+  <rect x="48" y="290" width="120" height="120" rx="8" fill="#121a15" stroke="#e6ede8" stroke-width="2"/>
+  <text x="108" y="316" text-anchor="middle" font-size="15" fill="#e6ede8">server</text>
+  <text x="108" y="336" text-anchor="middle" font-size="15" fill="#e6ede8">process</text>
+  <rect x="62" y="352" width="92" height="44" rx="6" fill="#5fd3ff" fill-opacity=".15" stroke="#5fd3ff"/>
+  <text x="108" y="372" text-anchor="middle" font-size="14" fill="#5fd3ff">PGA</text>
+  <text x="108" y="388" text-anchor="middle" font-size="11" fill="#5fd3ff">sort · hash</text>
+  <path d="M168 350h46" stroke="#b8c2bb" stroke-width="2" marker-end="url(#w)"/>
+
+  <!-- instância -->
+  <rect x="222" y="180" width="640" height="370" rx="14" fill="#39ff88" fill-opacity=".05" stroke="#39ff88" stroke-width="2.5"/>
+  <text x="242" y="208" font-size="17" font-weight="700" fill="#39ff88">INSTÂNCIA (memória)</text>
+  <!-- SGA -->
+  <rect x="242" y="220" width="600" height="190" rx="10" fill="#121a15" stroke="#39ff88" stroke-opacity=".6"/>
+  <text x="258" y="246" font-size="15" font-weight="700" fill="#e6ede8">SGA — compartilhada</text>
+  <g font-size="14">
+    <rect x="258" y="260" width="180" height="62" rx="6" fill="#ffb02e" fill-opacity=".12" stroke="#ffb02e"/>
+    <text x="348" y="286" text-anchor="middle" fill="#ffb02e">buffer cache</text>
+    <text x="348" y="306" text-anchor="middle" font-size="12" fill="#b8c2bb">blocos de dados</text>
+    <rect x="452" y="260" width="180" height="62" rx="6" fill="#39ff88" fill-opacity=".12" stroke="#39ff88"/>
+    <text x="542" y="286" text-anchor="middle" fill="#39ff88">redo log buffer</text>
+    <text x="542" y="306" text-anchor="middle" font-size="12" fill="#b8c2bb">redo entries</text>
+    <rect x="646" y="260" width="180" height="62" rx="6" fill="#121a15" stroke="#e6ede8"/>
+    <text x="736" y="286" text-anchor="middle" fill="#e6ede8">shared pool</text>
+    <text x="736" y="306" text-anchor="middle" font-size="12" fill="#b8c2bb">library · dictionary</text>
+    <rect x="258" y="334" width="137" height="58" rx="6" fill="#121a15" stroke="#7f9686"/>
+    <text x="326" y="368" text-anchor="middle" fill="#b8c2bb">large pool</text>
+    <rect x="407" y="334" width="137" height="58" rx="6" fill="#121a15" stroke="#7f9686"/>
+    <text x="475" y="368" text-anchor="middle" fill="#b8c2bb">java pool</text>
+    <rect x="556" y="334" width="137" height="58" rx="6" fill="#121a15" stroke="#7f9686"/>
+    <text x="624" y="368" text-anchor="middle" fill="#b8c2bb">streams pool</text>
+    <rect x="705" y="334" width="121" height="58" rx="6" fill="#121a15" stroke="#7f9686"/>
+    <text x="765" y="368" text-anchor="middle" fill="#b8c2bb">fixed SGA</text>
+  </g>
+  <!-- processos -->
+  <text x="242" y="440" font-size="15" font-weight="700" fill="#e6ede8">Principais processos de background</text>
+  <g font-size="15" font-weight="700">
+    <rect x="242" y="452" width="96" height="40" rx="6" fill="#ffb02e" fill-opacity=".15" stroke="#ffb02e"/><text x="290" y="478" text-anchor="middle" fill="#ffb02e">DBWn</text>
+    <rect x="348" y="452" width="96" height="40" rx="6" fill="#39ff88" fill-opacity=".15" stroke="#39ff88"/><text x="396" y="478" text-anchor="middle" fill="#39ff88">LGWR</text>
+    <rect x="454" y="452" width="96" height="40" rx="6" fill="#5fd3ff" fill-opacity=".15" stroke="#5fd3ff"/><text x="502" y="478" text-anchor="middle" fill="#5fd3ff">CKPT</text>
+    <rect x="560" y="452" width="86" height="40" rx="6" fill="#121a15" stroke="#7f9686"/><text x="603" y="478" text-anchor="middle" fill="#b8c2bb">SMON</text>
+    <rect x="656" y="452" width="86" height="40" rx="6" fill="#121a15" stroke="#7f9686"/><text x="699" y="478" text-anchor="middle" fill="#b8c2bb">PMON</text>
+    <rect x="752" y="452" width="90" height="40" rx="6" fill="#121a15" stroke="#7f9686"/><text x="797" y="478" text-anchor="middle" fill="#b8c2bb">LREG</text>
+  </g>
+  <text x="242" y="538" font-size="13" fill="#7f9686">ARCn só em ARCHIVELOG · LREG registra os serviços no listener</text>
+
+  <!-- banco: arquivos -->
+  <rect x="930" y="180" width="300" height="370" rx="14" fill="none" stroke="#e6ede8" stroke-width="2.5" stroke-dasharray="10 6"/>
+  <text x="950" y="208" font-size="17" font-weight="700" fill="#e6ede8">BANCO DE DADOS (disco)</text>
+  <g font-size="15">
+    <rect x="950" y="226" width="260" height="58" rx="8" fill="#ffb02e" fill-opacity=".1" stroke="#ffb02e"/>
+    <text x="966" y="252" fill="#ffb02e">datafiles</text><text x="966" y="272" font-size="12" fill="#b8c2bb">tabelas, índices, SYSTEM, SYSAUX</text>
+    <rect x="950" y="296" width="260" height="50" rx="8" fill="#121a15" stroke="#7f9686"/>
+    <text x="966" y="320" fill="#b8c2bb">tempfiles</text><text x="966" y="337" font-size="12" fill="#7f9686">tablespace temporária</text>
+    <rect x="950" y="358" width="260" height="58" rx="8" fill="#39ff88" fill-opacity=".1" stroke="#39ff88"/>
+    <text x="966" y="384" fill="#39ff88">online redo logs</text><text x="966" y="404" font-size="12" fill="#b8c2bb">histórico das mudanças</text>
+    <rect x="950" y="428" width="260" height="58" rx="8" fill="#5fd3ff" fill-opacity=".1" stroke="#5fd3ff"/>
+    <text x="966" y="454" fill="#5fd3ff">control files</text><text x="966" y="474" font-size="12" fill="#b8c2bb">mapa físico do banco</text>
+  </g>
+  <!-- setas de gravação (por baixo dos processos, fora da SGA) -->
+  <g fill="none" stroke-width="2" stroke-linejoin="round">
+    <path d="M290 492 V500 H878 V255 H944" stroke="#ffb02e" marker-end="url(#o)"/>
+    <path d="M396 492 V507 H893 V387 H944" stroke="#39ff88" marker-end="url(#g)"/>
+    <path d="M502 492 V514 H908 V457 H944" stroke="#5fd3ff" marker-end="url(#b)"/>
+  </g>
+  <!-- legenda -->
+  <g font-size="14">
+    <rect x="48" y="590" width="1182" height="86" rx="10" fill="#0b0f0c" stroke="#1c2a21"/>
+    <text x="68" y="622" fill="#ffb02e">DBWn → datafiles: grava os blocos alterados (dirty buffers)</text>
+    <text x="68" y="650" fill="#39ff88">LGWR → online redo logs: grava o redo — é ele que garante o COMMIT</text>
+    <text x="700" y="622" fill="#5fd3ff">CKPT → control files e cabeçalhos dos datafiles</text>
+    <text x="700" y="650" fill="#b8c2bb">PGA é privada de cada processo · SGA é compartilhada</text>
+  </g>
+  <text x="1230" y="706" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>

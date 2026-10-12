@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" font-family="Consolas, 'JetBrains Mono', monospace">
+  <rect width="1200" height="640" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">CDB: uma instância, vários containers</text>
+  <text x="40" y="86" font-size="18" fill="#7f9686">O que é compartilhado e o que é de cada PDB</text>
+
+  <!-- instância compartilhada -->
+  <rect x="40" y="112" width="1120" height="110" rx="12" fill="#39ff88" fill-opacity=".1" stroke="#39ff88" stroke-width="2"/>
+  <text x="64" y="146" font-size="20" font-weight="700" fill="#39ff88">INSTÂNCIA ÚNICA (compartilhada por todos)</text>
+  <text x="64" y="182" font-size="18" fill="#e6ede8">SGA · processos de background (DBWn, LGWR, CKPT, SMON, PMON, LREG…)</text>
+  <text x="64" y="208" font-size="16" fill="#7f9686">+ control files e online redo logs são do CDB inteiro</text>
+
+  <!-- containers -->
+  <g font-size="17">
+    <rect x="40" y="260" width="260" height="300" rx="12" fill="#121a15" stroke="#e6ede8" stroke-width="2"/>
+    <text x="60" y="296" font-size="20" font-weight="700" fill="#e6ede8">CDB$ROOT</text>
+    <text x="60" y="322" fill="#39ff88">CON_ID = 1</text>
+    <text x="60" y="366" fill="#e6ede8">metadados Oracle</text>
+    <text x="60" y="394" fill="#e6ede8">usuários comuns</text>
+    <text x="60" y="422" fill="#e6ede8">(C##…, SYS, SYSTEM)</text>
+    <text x="60" y="466" fill="#e6ede8">SYSTEM · SYSAUX</text>
+    <text x="60" y="530" font-size="14" fill="#7f9686">exatamente 1 por CDB</text>
+
+    <rect x="320" y="260" width="260" height="300" rx="12" fill="#121a15" stroke="#ffb02e" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="340" y="296" font-size="20" font-weight="700" fill="#ffb02e">PDB$SEED</text>
+    <text x="340" y="322" fill="#39ff88">CON_ID = 2</text>
+    <text x="340" y="366" fill="#e6ede8">modelo para criar</text>
+    <text x="340" y="394" fill="#e6ede8">novas PDBs</text>
+    <text x="340" y="446" font-weight="700" fill="#ffb02e">READ ONLY</text>
+    <text x="340" y="530" font-size="14" fill="#7f9686">exatamente 1 por CDB</text>
+
+    <rect x="600" y="260" width="270" height="300" rx="12" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="620" y="296" font-size="20" font-weight="700" fill="#5fd3ff">PDB1</text>
+    <text x="620" y="322" fill="#39ff88">CON_ID = 3</text>
+    <text x="620" y="366" fill="#e6ede8">SYSTEM · SYSAUX</text>
+    <text x="620" y="394" fill="#e6ede8">dicionário próprio</text>
+    <text x="620" y="422" fill="#e6ede8">usuários locais</text>
+    <text x="620" y="450" fill="#e6ede8">UNDO (local undo)</text>
+    <text x="620" y="494" fill="#7f9686">serviço: pdb1</text>
+    <text x="620" y="530" font-size="14" fill="#7f9686">zero ou mais PDBs</text>
+
+    <rect x="890" y="260" width="270" height="300" rx="12" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="910" y="296" font-size="20" font-weight="700" fill="#5fd3ff">PDB2</text>
+    <text x="910" y="322" fill="#39ff88">CON_ID = 4</text>
+    <text x="910" y="366" fill="#e6ede8">SYSTEM · SYSAUX</text>
+    <text x="910" y="394" fill="#e6ede8">dicionário próprio</text>
+    <text x="910" y="422" fill="#e6ede8">usuários locais</text>
+    <text x="910" y="450" fill="#e6ede8">UNDO (local undo)</text>
+    <text x="910" y="494" fill="#7f9686">serviço: pdb2</text>
+  </g>
+  <text x="40" y="604" font-size="16" fill="#7f9686">CON_ID 0 = linha que se refere ao CDB inteiro (ex.: V$DATABASE)</text>
+  <text x="1160" y="604" text-anchor="end" font-size="15" fill="#ffffff55">jj_dba</text>
+</svg>

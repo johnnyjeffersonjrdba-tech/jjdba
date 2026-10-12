@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f9686"/></marker></defs>
+  <rect width="1200" height="600" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Dedicated server × shared server</text>
+  <text x="40" y="86" font-size="18" fill="#7f9686">Onde fica a UGA (memória da sessão) muda conforme o modo</text>
+  <line x1="600" y1="110" x2="600" y2="570" stroke="#1c2a21" stroke-width="2"/>
+
+  <!-- dedicated -->
+  <text x="40" y="136" font-size="21" font-weight="700" fill="#39ff88">DEDICATED (1 : 1)</text>
+  <g font-size="16">
+    <g fill="#121a15" stroke="#e6ede8" stroke-width="2">
+      <rect x="40" y="170" width="120" height="50" rx="8"/><rect x="40" y="260" width="120" height="50" rx="8"/><rect x="40" y="350" width="120" height="50" rx="8"/>
+    </g>
+    <text x="100" y="201" text-anchor="middle" fill="#e6ede8">cliente</text><text x="100" y="291" text-anchor="middle" fill="#e6ede8">cliente</text><text x="100" y="381" text-anchor="middle" fill="#e6ede8">cliente</text>
+    <g stroke="#7f9686" stroke-width="2" marker-end="url(#a)"><path d="M160 195h90"/><path d="M160 285h90"/><path d="M160 375h90"/></g>
+    <g fill="#39ff88" fill-opacity=".12" stroke="#39ff88" stroke-width="2">
+      <rect x="255" y="160" width="300" height="70" rx="8"/><rect x="255" y="250" width="300" height="70" rx="8"/><rect x="255" y="340" width="300" height="70" rx="8"/>
+    </g>
+    <text x="270" y="188" fill="#e6ede8">server process</text><text x="270" y="214" fill="#39ff88">PGA + UGA</text>
+    <text x="270" y="278" fill="#e6ede8">server process</text><text x="270" y="304" fill="#39ff88">PGA + UGA</text>
+    <text x="270" y="368" fill="#e6ede8">server process</text><text x="270" y="394" fill="#39ff88">PGA + UGA</text>
+  </g>
+  <text x="40" y="460" font-size="16" fill="#e6ede8">• um processo exclusivo por cliente</text>
+  <text x="40" y="488" font-size="16" fill="#e6ede8">• UGA na PGA</text>
+  <text x="40" y="516" font-size="16" fill="#e6ede8">• obrigatório p/ STARTUP, SHUTDOWN e media recovery</text>
+  <text x="40" y="544" font-size="16" fill="#7f9686">V$SESSION.SERVER = DEDICATED</text>
+
+  <!-- shared -->
+  <text x="630" y="136" font-size="21" font-weight="700" fill="#5fd3ff">SHARED (N : poucos)</text>
+  <g font-size="16">
+    <g fill="#121a15" stroke="#e6ede8" stroke-width="2">
+      <rect x="630" y="170" width="110" height="44" rx="8"/><rect x="630" y="230" width="110" height="44" rx="8"/><rect x="630" y="290" width="110" height="44" rx="8"/>
+    </g>
+    <text x="685" y="198" text-anchor="middle" fill="#e6ede8">cliente</text><text x="685" y="258" text-anchor="middle" fill="#e6ede8">cliente</text><text x="685" y="318" text-anchor="middle" fill="#e6ede8">cliente</text>
+    <g stroke="#7f9686" stroke-width="2" marker-end="url(#a)"><path d="M740 192l40 50"/><path d="M740 252h40"/><path d="M740 312l40-50"/></g>
+    <rect x="785" y="225" width="120" height="56" rx="8" fill="#5fd3ff" fill-opacity=".15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="845" y="258" text-anchor="middle" fill="#5fd3ff">dispatcher</text>
+    <rect x="930" y="160" width="230" height="190" rx="10" fill="#39ff88" fill-opacity=".06" stroke="#39ff88" stroke-width="2"/>
+    <text x="946" y="188" font-weight="700" fill="#39ff88">SGA</text>
+    <rect x="946" y="200" width="198" height="40" rx="6" fill="#121a15" stroke="#e6ede8"/><text x="1045" y="226" text-anchor="middle" font-size="13" fill="#e6ede8">request queue (comum)</text>
+    <rect x="946" y="248" width="198" height="40" rx="6" fill="#121a15" stroke="#e6ede8"/><text x="1045" y="274" text-anchor="middle" font-size="13" fill="#e6ede8">response queue</text>
+    <rect x="946" y="296" width="198" height="40" rx="6" fill="#ffb02e" fill-opacity=".15" stroke="#ffb02e"/><text x="1045" y="322" text-anchor="middle" font-size="13" fill="#ffb02e">UGA (large/shared)</text>
+    <path d="M905 253h22" stroke="#7f9686" stroke-width="2" marker-end="url(#a)"/>
+    <g fill="#121a15" stroke="#5fd3ff" stroke-width="2"><rect x="946" y="380" width="94" height="44" rx="8"/><rect x="1060" y="380" width="94" height="44" rx="8"/></g>
+    <text x="993" y="408" text-anchor="middle" fill="#5fd3ff">S000</text><text x="1107" y="408" text-anchor="middle" fill="#5fd3ff">S001</text>
+    <path d="M1045 352v24" stroke="#7f9686" stroke-width="2" marker-end="url(#a)"/>
+  </g>
+  <text x="630" y="460" font-size="16" fill="#e6ede8">• poucos shared servers atendem muitos clientes</text>
+  <text x="630" y="488" font-size="16" fill="#e6ede8">• request queue comum; response queue por dispatcher</text>
+  <text x="630" y="516" font-size="16" fill="#e6ede8">• UGA na SGA (large ou shared pool)</text>
+  <text x="630" y="544" font-size="16" fill="#7f9686">V$SESSION.SERVER = SHARED</text>
+  <text x="1160" y="586" text-anchor="end" font-size="15" fill="#ffffff55">jj_dba</text>
+</svg>

@@ -9,6 +9,13 @@ document.getElementById('a').innerHTML = p
   ? `<span class="tag">${p.tipo === 'pratica' ? 'Na prática' : 'Estudo'}</span><span class="meta">${fmt(p.data)}</span><h1>${p.titulo}</h1>${p.capa ? `<img class="capa-post" src="${p.capa}" alt="">` : ''}${p.temas.map(t => `<span class="chip">${t}</span>`).join('')}${marked.parse(p.md || '')}`
   : '<h1>Post não encontrado</h1>';
 if (p) document.title = p.titulo;
+document.querySelectorAll('article pre').forEach(pre => {
+  const code = pre.querySelector('code'); const lang = (code && (code.className.match(/language-(\w+)/) || [])[1]) || '';
+  if (lang) pre.insertAdjacentHTML('afterbegin', `<span class="pre-rot">${lang}</span>`);
+  const b = document.createElement('button'); b.className = 'copiar'; b.type = 'button'; b.textContent = 'Copiar';
+  b.onclick = async () => { const t = (code || pre).innerText.replace(/\n$/, ''); try { await navigator.clipboard.writeText(t); } catch (e) { const r = document.createRange(); r.selectNodeContents(code || pre); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); getSelection().removeAllRanges(); } b.textContent = 'Copiado ✓'; b.classList.add('ok'); setTimeout(() => { b.textContent = 'Copiar'; b.classList.remove('ok'); }, 1800); };
+  pre.appendChild(b);
+});
 
 });
 </script></body></html>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e6ede8"/></marker>
+  <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#39ff88"/></marker>
+  <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffb02e"/></marker></defs>
+  <rect width="1200" height="620" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">O que acontece num UPDATE + COMMIT</text>
+  <text x="40" y="86" font-size="18" fill="#7f9686">No COMMIT quem grava é o LGWR (redo). O DBWn grava o bloco depois.</text>
+
+  <!-- server process -->
+  <rect x="40" y="250" width="200" height="90" rx="10" fill="#121a15" stroke="#e6ede8" stroke-width="2"/>
+  <text x="140" y="290" text-anchor="middle" font-size="18" fill="#e6ede8">server</text>
+  <text x="140" y="316" text-anchor="middle" font-size="18" fill="#e6ede8">process</text>
+
+  <!-- SGA -->
+  <rect x="320" y="120" width="420" height="360" rx="14" fill="#39ff88" fill-opacity=".06" stroke="#39ff88" stroke-width="2"/>
+  <text x="340" y="152" font-size="18" font-weight="700" fill="#39ff88">SGA</text>
+  <rect x="350" y="175" width="360" height="110" rx="10" fill="#121a15" stroke="#e6ede8"/>
+  <text x="370" y="208" font-size="18" fill="#e6ede8">Database buffer cache</text>
+  <rect x="370" y="225" width="150" height="44" rx="6" fill="#ffb02e" fill-opacity=".2" stroke="#ffb02e"/>
+  <text x="445" y="253" text-anchor="middle" font-size="15" fill="#ffb02e">bloco DIRTY</text>
+  <rect x="350" y="320" width="360" height="110" rx="10" fill="#121a15" stroke="#e6ede8"/>
+  <text x="370" y="353" font-size="18" fill="#e6ede8">Redo log buffer</text>
+  <rect x="370" y="370" width="150" height="44" rx="6" fill="#39ff88" fill-opacity=".2" stroke="#39ff88"/>
+  <text x="445" y="398" text-anchor="middle" font-size="15" fill="#39ff88">redo entry</text>
+
+  <path d="M240 280 L350 245" stroke="#e6ede8" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M240 310 L350 380" stroke="#e6ede8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="40" y="238" font-size="15" fill="#7f9686">1. altera o bloco</text>
+  <text x="40" y="368" font-size="15" fill="#7f9686">2. gera o redo</text>
+
+  <!-- processos e disco -->
+  <rect x="800" y="330" width="130" height="70" rx="10" fill="#39ff88" fill-opacity=".15" stroke="#39ff88" stroke-width="2"/>
+  <text x="865" y="372" text-anchor="middle" font-size="20" font-weight="700" fill="#39ff88">LGWR</text>
+  <rect x="800" y="185" width="130" height="70" rx="10" fill="#ffb02e" fill-opacity=".12" stroke="#ffb02e" stroke-width="2"/>
+  <text x="865" y="227" text-anchor="middle" font-size="20" font-weight="700" fill="#ffb02e">DBWn</text>
+  <path d="M710 392 L800 368" stroke="#39ff88" stroke-width="2" marker-end="url(#g)"/>
+  <path d="M710 246 L800 222" stroke="#ffb02e" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#o)"/>
+
+  <g fill="none" stroke-width="2">
+    <ellipse cx="1080" cy="345" rx="70" ry="18" stroke="#39ff88"/><path d="M1010 345v60c0 10 31 18 70 18s70-8 70-18v-60" stroke="#39ff88"/>
+    <ellipse cx="1080" cy="200" rx="70" ry="18" stroke="#ffb02e"/><path d="M1010 200v60c0 10 31 18 70 18s70-8 70-18v-60" stroke="#ffb02e"/>
+  </g>
+  <text x="1080" y="400" text-anchor="middle" font-size="15" fill="#e6ede8">online redo log</text>
+  <text x="1080" y="255" text-anchor="middle" font-size="15" fill="#e6ede8">datafiles</text>
+  <path d="M930 365 L1005 375" stroke="#39ff88" stroke-width="2" marker-end="url(#g)"/>
+  <path d="M930 220 L1005 228" stroke="#ffb02e" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#o)"/>
+
+  <rect x="40" y="510" width="1120" height="80" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="64" y="545" font-size="17" fill="#39ff88">3. COMMIT → LGWR grava o redo e o COMMIT retorna (fast commit).</text>
+  <text x="64" y="574" font-size="17" fill="#ffb02e">4. Depois (checkpoint / falta de buffer livre) → DBWn grava o bloco. Redo sempre antes do bloco.</text>
+  <text x="1160" y="110" text-anchor="end" font-size="15" fill="#ffffff55">jj_dba</text>
+</svg>
