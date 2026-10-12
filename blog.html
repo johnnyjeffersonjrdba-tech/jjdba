@@ -13,7 +13,7 @@
       <div class="box">
         <img src="img/logo.webp" alt="JJ DBA" style="width:100%;border-radius:8px;aspect-ratio:3/1;object-fit:cover">
         <h4 style="margin-top:12px">Johnny Jefferson Jr.</h4>
-        <p class="meta" style="margin:0 0 10px">Oracle DBA. Publico o que estudo para certificações e o que faço no dia a dia em clientes reais.</p>
+        <p class="meta" style="margin:0 0 10px">Oracle DBA · 5 certificações Oracle. Compartilho o que estudo e o que aprendo no dia a dia como DBA.</p>
         <a href="sobre.html">Sobre mim</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>
       </div>
       <div class="box" id="seriesBox"><h4>Guias de estudo</h4><div id="series"></div></div>
@@ -27,8 +27,8 @@ dados.then(() => {
 const tipo = qs.get('tipo'), tema = qs.get('tema');
 const cab = {
   estudo: ['Estudos', 'Material de certificação', 'Resumos, laboratórios, pegadinhas de prova e o inglês que cai no exame.'],
-  pratica: ['Na prática', 'Projetos reais, passo a passo', 'Instalações, migrações e problemas resolvidos em clientes — com os comandos e as lições aprendidas.']
-}[tipo] || [tema ? 'Tema' : 'Blog', tema || 'Oracle na prova e na prática', 'Estudos para certificações e projetos reais de DBA, em português e direto ao ponto.'];
+  pratica: ['Na prática', 'Cenários práticos, passo a passo', 'Instalações, migrações e troubleshooting reproduzidos em laboratório, sem dados de clientes — com os comandos e as lições aprendidas.']
+}[tipo] || [tema ? 'Tema' : 'Blog', tema || 'Oracle na prova e na prática', 'Estudos para certificações e cenários práticos de DBA, em português e direto ao ponto.'];
 [kicker.textContent, titulo.textContent, sub.textContent] = cab;
 const cores = ['c1', '', 'c2', 'c3'];
 let busca = '';
