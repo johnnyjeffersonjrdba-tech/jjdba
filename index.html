@@ -8,18 +8,16 @@
     <div class="stats" id="stats"></div>
   </section>
 
-  <section class="sec"><h2>ultimos_artigos</h2><div id="ult"></div><p><a href="blog.html">ver todos →</a></p></section>
+  <section class="sec"><h2>artigos_publicados</h2><div id="ult"></div><p><a href="blog.html">ver todos →</a></p></section>
 
-  <section class="sec"><h2>certificacoes</h2><div id="certs"></div><p><a href="certificacoes.html">linha do tempo completa →</a></p></section>
 </main>
 <script src="posts.js"></script><script src="layout.js"></script><script>
 dados.then(() => {
 
 const ok = CERTS.filter(c => c.status === 'ok').length;
 stats.innerHTML = `<span><b>${ok}</b> certificações Oracle</span><span><b>${visiveis.length}</b> artigos</span><span><b>1</b> novo por semana</span>`;
-ult.innerHTML = visiveis.slice(0, 5).map(p => `<a class="row" href="post.html?id=${p.id}"><span class="meta">${p.data}</span><b>${p.titulo}</b><span class="meta">${p.tipo === 'pratica' ? '[na-pratica]' : '[estudo]'}</span></a>`).join('')
+ult.innerHTML = visiveis.slice(0, 10).map(p => `<a class="row" href="post.html?id=${p.id}"><span class="meta">${p.data}</span><b>${p.titulo}</b><span class="meta">${p.tipo === 'pratica' ? '[na-pratica]' : '[estudo]'}</span></a>`).join('')
   || '<p class="meta">-- 0 rows selected. O primeiro artigo sai em breve.</p>';
-certs.innerHTML = CERTS.filter(c => c.status !== 'planejada').map(c => `<div class="row" style="grid-template-columns:110px 1fr auto"><span class="meta">${c.data}</span><span>${c.nome}</span><span class="meta" style="color:${c.status === 'ok' ? 'var(--accent)' : 'var(--muted)'}">${c.status === 'ok' ? '✔ ok' : '… em andamento'}</span></div>`).join('');
 
 });
 </script></body></html>
