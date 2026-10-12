@@ -33,65 +33,11 @@ const certImg = c => c.img ? `<img src="${c.img}" alt="${c.nome}" title="${c.nom
 const certBadge = c => `<div class="badge"><div class="h ${CERT_ST[c.status][1]}">${c.sigla}</div><div><b>${c.nome}</b><br><span class="meta">${c.exame} · ${c.status === 'ok' ? '✔ ' : ''}${CERT_ST[c.status][0]} · ${c.data}</span></div></div>`;
 
 const POSTS = [
-  {
-    id: 'migracao-oda-para-kvm-dataguard', tipo: 'pratica', rascunho: true,
-    temas: ['ODA', 'KVM', 'DATAGUARD', 'LINUX'], data: '2026-10-19',
-    titulo: 'Migrando bases não produtivas e Data Guard de um ODA para KVM',
-    resumo: 'Do zero: preparação do ambiente KVM, instalação do Oracle, migração das bases não produtivas e recriação do Data Guard. O passo a passo e o que aprendi.',
-    md: `> RASCUNHO — preencha cada seção depois de concluir o projeto.
-
-## Cenário
-- Origem: (modelo do ODA, versão, nº de bases)
-- Destino: (KVM, SO, CPU/memória/storage)
-- Objetivo e janela disponível
-
-## Arquitetura antes × depois
-
-## Passo a passo
-### 1. Preparação do servidor KVM
-\`\`\`bash
-# comandos usados
-\`\`\`
-### 2. Instalação do Oracle Database
-### 3. Migração das bases não produtivas
-### 4. Recriação do Data Guard
-### 5. Validação
-
-## Problemas que encontrei e como resolvi
-
-## Lições aprendidas
-
-## Checklist para quem for fazer o mesmo
-- [ ] item`
-  },
-  {
-    id: 'arquitetura-oracle-instancia', tipo: 'estudo', rascunho: true, serie: '1Z0-082', parte: 1,
-    temas: ['DBA', 'CERTIFICAÇÃO'], data: '2026-10-19',
-    titulo: 'Arquitetura Oracle: instância, SGA, PGA e startup',
-    resumo: '(escreva o resumo que aparece na lista)',
-    md: `> RASCUNHO — estrutura sugerida para posts de estudo. Substitua pelo seu texto.
-
-## O que você vai aprender
-
-## Conceitos (com minhas palavras)
-
-## Laboratório
-\`\`\`sql
--- comandos que executei
-\`\`\`
-
-## Pegadinhas de prova
-
-## Inglês da prova
-| Termo | Significado |
-|---|---|
-| | |
-
-## Resumo em 5 linhas`
-  }
+  
 ];
 
 const hoje = new Date().toISOString().slice(0, 10);
 const fmt = d => new Date(d + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-const verRascunhos = new URLSearchParams(location.search).has('rascunhos');
+// Rascunhos só aparecem no seu computador (localhost), nunca no site publicado.
+const verRascunhos = location.hostname === 'localhost' && new URLSearchParams(location.search).has('rascunhos');
 const visiveis = POSTS.filter(p => verRascunhos || (!p.rascunho && p.data <= hoje));

@@ -38,7 +38,7 @@ function render() {
     const grande = p.parte ? '#' + p.parte : (p.tipo === 'pratica' ? '⚙' : '★');
     return `<div class="feat"><a href="post.html?id=${p.id}${verRascunhos ? '&rascunhos' : ''}" class="cover ${p.tipo === 'pratica' ? 'c2' : cores[i % 4]}" style="text-decoration:none"><span class="sm">${rot}</span><div><div class="wk">${grande}</div><span class="sm">${p.temas.slice(0, 3).join(' · ')}</span></div></a>
       <div><h2><a href="post.html?id=${p.id}${verRascunhos ? '&rascunhos' : ''}">${p.titulo}</a></h2><span class="meta">${fmt(p.data)}${p.rascunho ? ' · <b style="color:var(--accent)">RASCUNHO</b>' : ''}</span><p class="meta" style="margin:6px 0">${p.resumo}</p>${p.temas.map(t => `<a class="chip" href="blog.html?tema=${encodeURIComponent(t)}" style="text-decoration:none">${t}</a>`).join('')}</div></div>`;
-  }).join('') || `<div class="card"><p class="meta" style="margin:0">Nenhum artigo publicado aqui ainda. ${verRascunhos ? '' : '<a href="?rascunhos">Ver rascunhos</a> · '}<a href="escrever.html">Escrever o primeiro</a></p></div>`;
+  }).join('') || `<div class="card"><p class="meta" style="margin:0">-- 0 rows selected. O primeiro artigo desta seção sai em breve.</p></div>`;
 }
 document.getElementById('cats').innerHTML = TEMAS.map(t => { const n = visiveis.filter(p => p.temas.includes(t)).length; return `<a class="catl ${t === tema ? 'on' : ''}" href="blog.html?tema=${encodeURIComponent(t)}">${t}<span>${n}</span></a>`; }).join('');
 q.oninput = e => { busca = e.target.value.toLowerCase(); render(); };
