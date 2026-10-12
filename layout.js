@@ -8,5 +8,7 @@ document.body.insertAdjacentHTML('afterbegin', `<header class="top"><div class="
 <a class="brand" href="index.html"><img src="img/logo.svg" alt="JJ DBA"></a>
 ${links.map(([h, t]) => `<a href="${h}" class="${h === here ? 'on' : ''}">${t}</a>`).join('')}</nav></div></header>`);
 document.body.insertAdjacentHTML('beforeend', `<footer><div class="wrap wide" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between">
-<span>© 2026 jj_dba · Johnny Jefferson Jr.</span>
+<span>© 2026 jj_dba · Johnny Jefferson Jr.<span id="visitas-site" hidden data-fmt=" · 👁 <b style='color:var(--accent)'>{n}</b> visualizações no blog"></span></span>
 <span><a href="blog.html">posts</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">linkedin</a></span></div></footer>`);
+
+if (typeof mostrarVisitas === 'function') mostrarVisitas(document.getElementById('visitas-site'), 'TOTAL');
