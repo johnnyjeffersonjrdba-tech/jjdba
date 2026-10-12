@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artigos por Tema</title><link rel="stylesheet" href="style.css">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artigos por Tema</title><link rel="stylesheet" ="?v=202610121822">
 <style>
 .tbar{position:sticky;top:71px;z-index:4;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
 .tbar a{border:1px solid var(--line);border-radius:4px;padding:3px 10px;font-size:13px;color:var(--ink)}.tbar a span{color:var(--muted);margin-left:5px}
@@ -11,7 +11,7 @@
   <nav class="tbar" id="tbar"></nav>
   <div id="secoes"></div>
 </main>
-<script src="posts.js"></script><script src="layout.js"></script><script>
+<script ="?v=202610121822"></script><script ="?v=202610121822"></script><script>
 const exemplo = location.hostname === 'localhost' && qs.has('exemplo');
 const pronto = exemplo ? new Promise(r => { const s = document.createElement('script'); s.src = 'exemplos.js'; s.onload = r; document.head.appendChild(s); }) : Promise.resolve();
 Promise.all([dados, pronto]).then(() => {
