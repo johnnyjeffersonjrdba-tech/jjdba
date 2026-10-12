@@ -1,6 +1,7 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JJ DBA</title><link rel="stylesheet" href="style.css"></head><body>
-<main class="wrap">
-  <section class="home">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JJ DBA</title><link rel="stylesheet" href="style.css">
+<style>.cols{display:grid;grid-template-columns:1fr 230px;gap:36px}@media(max-width:720px){.cols{grid-template-columns:1fr}}</style></head><body>
+<main class="wrap wide">
+  <section class="home" style="padding-bottom:8px">
     <div class="prompt"><b>SQL&gt;</b> SELECT autor, foco FROM jj_dba;</div>
     <h1>Johnny Jefferson Jr.<br><span>Oracle DBA</span> — estudos &amp; projetos reais<span class="cur"></span></h1>
     <p class="l">Toda semana publico o que estudo para certificações Oracle e o passo a passo dos projetos que executo em clientes: instalações, migrações, Data Guard e troubleshooting.</p>
@@ -8,16 +9,28 @@
     <div class="stats" id="stats"></div>
   </section>
 
-  <section class="sec"><h2>artigos_publicados</h2><div id="ult"></div><p><a href="blog.html">ver todos →</a></p></section>
-
+  <div class="cols">
+    <section class="sec"><h2>artigos_publicados</h2><div id="ult"></div><p><a href="blog.html">ver todos →</a></p></section>
+    <aside class="side sec">
+      <div class="box"><input class="search" id="q" placeholder="Buscar artigos…"></div>
+      <div class="box"><h4>Categorias</h4><div id="cats"></div></div>
+      <div class="box"><h4>Johnny Jefferson Jr.</h4><p class="meta" style="margin:0 0 8px">Oracle DBA. Publico o que estudo para certificações e o que faço no dia a dia em clientes reais.</p><a href="sobre.html">Sobre mim</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a></div>
+    </aside>
+  </div>
 </main>
 <script src="posts.js"></script><script src="layout.js"></script><script>
 dados.then(() => {
 
 const ok = CERTS.filter(c => c.status === 'ok').length;
 stats.innerHTML = `<span><b>${ok}</b> certificações Oracle</span><span><b>${visiveis.length}</b> artigos</span><span><b>1</b> novo por semana</span>`;
-ult.innerHTML = visiveis.slice(0, 10).map(p => `<a class="row" href="post.html?id=${p.id}"><span class="meta">${p.data}</span><b>${p.titulo}</b><span class="meta">${p.tipo === 'pratica' ? '[na-pratica]' : '[estudo]'}</span></a>`).join('')
-  || '<p class="meta">-- 0 rows selected. O primeiro artigo sai em breve.</p>';
+function render(busca = '') {
+  const lista = visiveis.filter(p => (p.titulo + p.resumo + p.temas.join(' ')).toLowerCase().includes(busca));
+  ult.innerHTML = lista.slice(0, 10).map(p => `<a class="row" href="post.html?id=${p.id}"><span class="meta">${p.data}</span><b>${p.titulo}</b><span class="meta">${p.tipo === 'pratica' ? '[na-pratica]' : '[estudo]'}</span></a>`).join('')
+    || `<p class="meta">-- 0 rows selected. ${busca ? 'Nenhum artigo encontrado.' : 'O primeiro artigo sai em breve.'}</p>`;
+}
+render();
+q.oninput = e => render(e.target.value.toLowerCase());
+cats.innerHTML = TEMAS.map(t => `<a class="catl" href="blog.html?tema=${encodeURIComponent(t)}">${t}<span>${visiveis.filter(p => p.temas.includes(t)).length}</span></a>`).join('');
 
 });
 </script></body></html>
