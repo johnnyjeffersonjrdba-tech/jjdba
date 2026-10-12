@@ -1,0 +1,82 @@
+[
+  {
+    "sigla": "OCI",
+    "nome": "OCI Foundations Associate",
+    "exame": "1Z0-1085-26",
+    "data": "ago/2026",
+    "status": "ok"
+  },
+  {
+    "sigla": "AAI",
+    "nome": "Agentic AI Foundations Associate",
+    "exame": "1Z0-1157-26",
+    "data": "ago/2026",
+    "status": "ok"
+  },
+  {
+    "sigla": "ARC",
+    "nome": "OCI Architect Associate",
+    "exame": "1Z0-1072-26",
+    "data": "set/2026",
+    "status": "ok"
+  },
+  {
+    "sigla": "OAI",
+    "nome": "OCI AI Foundations Associate",
+    "exame": "1Z0-1122-26",
+    "data": "set/2026",
+    "status": "ok"
+  },
+  {
+    "sigla": "ADB",
+    "nome": "Oracle AI Database Foundations Associate",
+    "exame": "1Z0-1195-26",
+    "data": "out/2026",
+    "status": "ok"
+  },
+  {
+    "sigla": "082",
+    "nome": "Oracle Database Administration I",
+    "exame": "1Z0-082",
+    "data": "18/11/2026",
+    "status": "andamento",
+    "img": "https://images.credly.com/size/340x340/images/3a265297-cfae-46aa-a4fe-9ebbb1cb957d/07_Oracle_Database_Admin_Professional__1_.png",
+    "obs": "082 + 083 = OCP Database Administration"
+  },
+  {
+    "sigla": "PMI",
+    "nome": "Certified Associate in Project Management",
+    "exame": "PMI · CAPM",
+    "data": "dez/2026",
+    "status": "planejada"
+  },
+  {
+    "sigla": "083",
+    "nome": "Oracle Database Administration II",
+    "exame": "1Z0-083",
+    "data": "jan/2027",
+    "status": "planejada",
+    "img": "https://images.credly.com/size/340x340/images/3a265297-cfae-46aa-a4fe-9ebbb1cb957d/07_Oracle_Database_Admin_Professional__1_.png"
+  },
+  {
+    "sigla": "078",
+    "nome": "RAC, ASM and Grid Infrastructure Administration",
+    "exame": "1Z0-078",
+    "data": "mar/2027",
+    "status": "planejada"
+  },
+  {
+    "sigla": "076",
+    "nome": "Data Guard Administration",
+    "exame": "1Z0-076",
+    "data": "mai/2027",
+    "status": "planejada"
+  },
+  {
+    "sigla": "116",
+    "nome": "Database Security Administration",
+    "exame": "1Z0-116",
+    "data": "nov/2027",
+    "status": "planejada"
+  }
+]

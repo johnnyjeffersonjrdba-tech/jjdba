@@ -1,0 +1,253 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Admin JJ DBA</title>
+<link rel="stylesheet" href="../style.css"><link rel="icon" href="../img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<style>
+.adm{display:grid;grid-template-columns:200px 1fr;min-height:100vh}@media(max-width:760px){.adm{grid-template-columns:1fr}.menu{border-right:0;border-bottom:1px solid var(--line)}}
+.menu{border-right:1px solid var(--line);padding:18px 14px}.menu img{height:34px;margin-bottom:22px}
+.menu a{display:block;color:var(--muted);padding:6px 8px;border-radius:4px;font-size:14px;cursor:pointer}.menu a.on,.menu a:hover{background:var(--code);color:var(--accent);text-decoration:none}
+.menu .u{margin-top:30px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;word-break:break-all}
+.main{padding:24px 28px;min-width:0}.tela{display:none}.tela.on{display:block}
+.top2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}.top2 h1{font-size:22px;margin:0}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--muted);font-weight:400;font-size:12px;border-bottom:1px solid var(--line);padding:8px}td{padding:9px 8px;border-bottom:1px dashed var(--line);vertical-align:middle}
+.st{font-size:11px;padding:2px 8px;border-radius:3px;border:1px solid;white-space:nowrap}.st.pub{color:var(--accent);border-color:var(--accent)}.st.ras{color:#ffb02e;border-color:#ffb02e}.st.ag{color:#6bb3e6;border-color:#6bb3e6}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}.kpi div{border:1px solid var(--line);border-radius:6px;padding:12px}.kpi b{font-size:24px;color:var(--accent);display:block}
+.ed{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:1000px){.ed{grid-template-columns:1fr}}
+.ed label,.lbl{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;background:var(--code);border:1px solid var(--line);color:var(--ink);border-radius:4px;padding:7px 9px;font:14px var(--mono)}input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+textarea{min-height:380px;resize:vertical}.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tg{display:flex;flex-wrap:wrap;gap:6px}.tg label{margin:0;border:1px solid var(--line);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:12px;color:var(--ink)}.tg input{width:auto;margin-right:4px}
+.login{max-width:440px;margin:10vh auto;padding:0 16px}.login img{height:48px}
+.drop{border:1px dashed var(--line);border-radius:6px;padding:12px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer}.drop.over{border-color:var(--accent);color:var(--accent)}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:6px;font-weight:700;display:none;z-index:9;max-width:90vw}
+.toast.ok{background:var(--accent);color:var(--bg)}.toast.err{background:#ff5f56;color:#fff}
+.btn.del{border-color:#ff5f56;color:#ff5f56}.btn.del:hover{background:#ff5f56;color:#fff}
+.btn:disabled{opacity:.5;cursor:wait}
+#prev{max-height:80vh;overflow:auto}
+.cert td input,.cert td select{padding:4px 6px;font-size:12px}
+ol.passos{color:var(--muted);font-size:13px;padding-left:18px}ol.passos li{margin:4px 0}
+</style></head><body>
+
+<!-- LOGIN -->
+<div id="login" class="login">
+  <img src="../img/logo.svg" alt="JJ DBA">
+  <h2 style="margin:18px 0 4px">Área administrativa</h2>
+  <p class="meta">Acesso restrito. Só contas com permissão de escrita no repositório <b>jjdba</b> conseguem entrar.</p>
+  <label class="lbl">Token de acesso do GitHub</label>
+  <input id="tok" type="password" placeholder="github_pat_…" autocomplete="off">
+  <label class="tg" style="margin-top:8px"><label><input type="checkbox" id="lembrar" checked>lembrar neste navegador</label></label>
+  <p><button class="btn f" id="entrar" style="width:100%;margin-top:10px">Entrar</button></p>
+  <p class="meta" id="lerr" style="color:#ff5f56"></p>
+  <details class="meta"><summary style="cursor:pointer">Como gerar o token (uma vez só)</summary>
+    <ol class="passos">
+      <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → novo token (fine-grained)</a>.</li>
+      <li>Nome: <code>admin-blog</code> · Expiração: 1 ano.</li>
+      <li>Repository access: <b>Only select repositories</b> → <code>jjdba</code>.</li>
+      <li>Permissions → Repository → <b>Contents: Read and write</b>.</li>
+      <li>Gere, copie e cole acima. Não compartilhe esse token.</li>
+    </ol></details>
+</div>
+
+<!-- APP -->
+<div id="app" class="adm" style="display:none">
+  <aside class="menu">
+    <img src="../img/logo.svg" alt="JJ DBA">
+    <a class="on" data-t="posts">▤ Posts</a>
+    <a data-t="editor" id="mNovo">＋ Novo post</a>
+    <a data-t="certs">✔ Certificações</a>
+    <a href="../index.html" target="_blank">↗ Ver site</a>
+    <div class="u">logado como<br><b style="color:var(--ink)" id="quem"></b><br><a style="padding:6px 0;display:inline;cursor:pointer" id="sair">sair</a></div>
+  </aside>
+  <main class="main">
+    <section class="tela on" id="posts">
+      <div class="top2"><h1>Posts</h1><button class="btn f" id="bNovo">＋ Novo post</button></div>
+      <div class="kpi" id="kpi"></div>
+      <table><thead><tr><th>Título</th><th>Tipo</th><th>Data</th><th>Status</th><th></th></tr></thead><tbody id="lista"></tbody></table>
+    </section>
+
+    <section class="tela" id="editor">
+      <div class="top2"><h1 id="edTit">Novo post</h1><span class="meta" id="auto"></span></div>
+      <div class="ed"><div>
+        <label>Título</label><input id="f-titulo">
+        <label>Resumo (aparece na lista)</label><input id="f-resumo">
+        <div style="display:flex;gap:10px"><div style="flex:1"><label>Tipo</label><select id="f-tipo"><option value="pratica">Na prática</option><option value="estudo">Estudo</option></select></div>
+          <div style="flex:1"><label>Data de publicação</label><input type="date" id="f-data"></div></div>
+        <div style="display:flex;gap:10px"><div style="flex:1"><label>Série (opcional)</label><input id="f-serie" placeholder="1Z0-082"></div><div style="width:90px"><label>Parte</label><input type="number" id="f-parte" min="1"></div></div>
+        <label>Temas</label><div class="tg" id="f-temas"></div>
+        <label>Modelo de estrutura</label><select id="f-modelo"><option value="">— inserir modelo —</option><option value="pratica">Projeto real</option><option value="estudo">Estudo</option><option value="erro">Erro resolvido</option></select>
+        <label>Imagens</label><div class="drop" id="drop">arraste prints aqui ou clique para enviar<input type="file" id="file" accept="image/*" multiple hidden></div>
+        <label>Conteúdo (Markdown)</label><textarea id="f-md"></textarea>
+        <div class="bar">
+          <button class="btn" data-acao="rascunho">Salvar rascunho</button>
+          <button class="btn f" data-acao="publicar">Publicar</button>
+          <button class="btn del" id="bDel" style="margin-left:auto">Excluir</button>
+        </div>
+        <p class="meta">"Publicar" com data futura = agendado: o post aparece sozinho no dia.</p>
+      </div>
+      <div><label>Prévia</label><article class="card" id="prev"></article></div></div>
+    </section>
+
+    <section class="tela" id="certs">
+      <div class="top2"><h1>Certificações</h1><span><button class="btn" id="cAdd">＋ Adicionar</button> <button class="btn f" id="cSalvar">Salvar</button></span></div>
+      <div style="overflow-x:auto"><table class="cert"><thead><tr><th>Sigla</th><th>Nome</th><th>Exame</th><th>Data</th><th>Status</th><th>Imagem do emblema (URL)</th><th></th></tr></thead><tbody id="clista"></tbody></table></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const OWNER = 'johnnyjeffersonjrdba-tech', REPO = 'jjdba', BRANCH = 'main';
+const TEMAS = ['DATAGUARD', 'DBA', 'LINUX', 'ODA', 'KVM', 'OCI', 'PL/SQL', 'RAC', 'RMAN', 'SQL', 'TUNING', 'CERTIFICAÇÃO'];
+const MODELOS = {
+  pratica: '## Cenário\n- Origem:\n- Destino:\n- Objetivo:\n\n## Passo a passo\n### 1. \n```bash\n\n```\n### 2. \n\n## Problemas que encontrei e como resolvi\n\n## Lições aprendidas\n\n## Checklist\n- [ ] ',
+  estudo: '## O que você vai aprender\n\n## Conceitos\n\n## Laboratório\n```sql\n\n```\n\n## Pegadinhas de prova\n\n## Inglês da prova\n| Termo | Significado |\n|---|---|\n| | |\n\n## Resumo em 5 linhas',
+  erro: '## Sintoma\n```\nORA-\n```\n\n## Causa\n\n## Solução\n```sql\n\n```\n\n## Como evitar'
+};
+const $ = id => document.getElementById(id);
+const hoje = () => new Date().toISOString().slice(0, 10);
+let TOKEN = '', posts = [], certs = [], atual = null;
+
+// ---------- GitHub API ----------
+function toB64(str) { const bytes = new TextEncoder().encode(str); let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(bin); }
+function fromB64(b) { const bin = atob(b.replace(/\n/g, '')); return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))); }
+async function gh(path, opt = {}) {
+  const r = await fetch('https://api.github.com' + path, { ...opt, headers: { Authorization: 'Bearer ' + TOKEN, Accept: 'application/vnd.github+json', ...(opt.headers || {}) } });
+  if (!r.ok) { const e = new Error((await r.json().catch(() => ({}))).message || r.status); e.status = r.status; throw e; }
+  return r.status === 204 ? null : r.json();
+}
+async function lerJSON(arq) {
+  try { const r = await gh(`/repos/${OWNER}/${REPO}/contents/${arq}?ref=${BRANCH}&t=${Date.now()}`); return { dados: JSON.parse(fromB64(r.content)), sha: r.sha }; }
+  catch (e) { if (e.status === 404) return { dados: [], sha: null }; throw e; }
+}
+async function gravar(arq, conteudoB64, msg) {
+  let sha; try { sha = (await gh(`/repos/${OWNER}/${REPO}/contents/${arq}?ref=${BRANCH}&t=${Date.now()}`)).sha; } catch (e) { if (e.status !== 404) throw e; }
+  return gh(`/repos/${OWNER}/${REPO}/contents/${arq}`, { method: 'PUT', body: JSON.stringify({ message: msg, content: conteudoB64, branch: BRANCH, ...(sha ? { sha } : {}) }) });
+}
+const gravarJSON = (arq, dados, msg) => gravar(arq, toB64(JSON.stringify(dados, null, 2) + '\n'), msg);
+
+// ---------- UI util ----------
+function toast(m, tipo = 'ok') { const t = $('toast'); t.textContent = m; t.className = 'toast ' + tipo; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); }
+function ir(id) { document.querySelectorAll('.tela').forEach(e => e.classList.toggle('on', e.id === id)); document.querySelectorAll('.menu a[data-t]').forEach(a => a.classList.toggle('on', a.dataset.t === id)); }
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const slug = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+const status = p => p.rascunho ? ['rascunho', 'ras'] : p.data > hoje() ? ['agendado', 'ag'] : ['publicado', 'pub'];
+async function ocupado(btn, fn) { const b = btn; b && (b.disabled = true); try { await fn(); } catch (e) { toast('Erro: ' + e.message, 'err'); } finally { b && (b.disabled = false); } }
+
+// ---------- login ----------
+async function entrar(tok) {
+  TOKEN = tok.trim();
+  const repo = await gh(`/repos/${OWNER}/${REPO}`);
+  if (!repo.permissions || !repo.permissions.push) throw new Error('acesso negado: este token não pode publicar no blog');
+  let nome = OWNER; try { nome = (await gh('/user')).login; } catch (e) {}
+  $('quem').textContent = nome;
+  $('login').style.display = 'none'; $('app').style.display = 'grid';
+  await carregar();
+}
+$('entrar').onclick = () => ocupado($('entrar'), async () => {
+  $('lerr').textContent = '';
+  try { await entrar($('tok').value); if ($('lembrar').checked) try { localStorage.setItem('jjdba-token', TOKEN); } catch (e) {} }
+  catch (e) { TOKEN = ''; $('lerr').textContent = e.status === 401 ? 'Token inválido ou expirado.' : e.status === 404 ? 'acesso negado: token sem acesso ao repositório jjdba' : e.message; }
+});
+$('tok').onkeydown = e => e.key === 'Enter' && $('entrar').click();
+$('sair').onclick = () => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} location.reload(); };
+try { const t = localStorage.getItem('jjdba-token'); if (t) entrar(t).catch(() => { try { localStorage.removeItem('jjdba-token'); } catch (e) {} }); } catch (e) {}
+
+// ---------- posts ----------
+async function carregar() {
+  [{ dados: posts }, { dados: certs }] = await Promise.all([lerJSON('data/posts.json'), lerJSON('data/certs.json')]);
+  posts.sort((a, b) => b.data.localeCompare(a.data));
+  renderLista(); renderCerts();
+}
+function renderLista() {
+  const n = k => posts.filter(p => status(p)[1] === k).length;
+  $('kpi').innerHTML = `<div><b>${n('pub')}</b><span class="meta">publicados</span></div><div><b>${n('ag')}</b><span class="meta">agendados</span></div><div><b>${n('ras')}</b><span class="meta">rascunhos</span></div>`;
+  $('lista').innerHTML = posts.map((p, i) => { const [s, c] = status(p); return `<tr><td>${esc(p.titulo)}</td><td class="meta">${p.tipo === 'pratica' ? 'na prática' : 'estudo'}</td><td class="meta">${p.data.split('-').reverse().join('/')}</td><td><span class="st ${c}">${s}</span></td><td style="white-space:nowrap"><a style="cursor:pointer" data-ed="${i}">editar</a>${c === 'pub' ? ` · <a href="../post.html?id=${encodeURIComponent(p.id)}" target="_blank">ver</a>` : ''}</td></tr>`; }).join('')
+    || '<tr><td colspan="5" class="meta">Nenhum post ainda. Clique em "Novo post".</td></tr>';
+  $('lista').querySelectorAll('[data-ed]').forEach(a => a.onclick = () => abrir(posts[+a.dataset.ed]));
+}
+$('f-temas').innerHTML = TEMAS.map(t => `<label><input type="checkbox" value="${t}">${t}</label>`).join('');
+const campos = ['titulo', 'resumo', 'tipo', 'data', 'serie', 'parte', 'md'];
+function abrir(p) {
+  atual = p || null;
+  const d = p || (() => { try { return JSON.parse(localStorage.getItem('jjdba-novo') || 'null'); } catch (e) { return null; } })() || { tipo: 'pratica', data: hoje(), md: MODELOS.pratica, temas: [] };
+  campos.forEach(c => $('f-' + c).value = d[c] ?? '');
+  document.querySelectorAll('#f-temas input').forEach(i => i.checked = (d.temas || []).includes(i.value));
+  $('edTit').textContent = p ? 'Editar post' : 'Novo post'; $('bDel').style.display = p ? '' : 'none';
+  prev(); ir('editor');
+}
+function lerForm() {
+  const o = {}; campos.forEach(c => o[c] = $('f-' + c).value);
+  o.temas = [...document.querySelectorAll('#f-temas input:checked')].map(i => i.value);
+  o.parte = o.parte ? +o.parte : undefined; if (!o.serie) { delete o.serie; delete o.parte; }
+  return o;
+}
+function prev() {
+  const o = lerForm();
+  $('prev').innerHTML = `<span class="tag">${o.tipo === 'pratica' ? 'Na prática' : 'Estudo'}</span><h1 style="font-size:22px">${esc(o.titulo) || 'Título'}</h1>${o.temas.map(t => `<span class="chip">${t}</span>`).join('')}${marked.parse(o.md.replace(/\]\(img\//g, '](../img/'))}`;
+  if (!atual) { try { localStorage.setItem('jjdba-novo', JSON.stringify(o)); $('auto').textContent = 'rascunho local salvo ✓'; } catch (e) {} }
+}
+document.querySelector('#editor .ed').addEventListener('input', prev);
+$('f-modelo').onchange = e => { const v = e.target.value; e.target.value = ''; if (v && (!$('f-md').value.trim() || confirm('Substituir o conteúdo pelo modelo?'))) { $('f-md').value = MODELOS[v]; prev(); } };
+$('bNovo').onclick = $('mNovo').onclick = () => abrir(null);
+document.querySelectorAll('.menu a[data-t]').forEach(a => { if (a.id !== 'mNovo') a.onclick = () => ir(a.dataset.t); });
+
+document.querySelectorAll('[data-acao]').forEach(b => b.onclick = () => ocupado(b, async () => {
+  const o = lerForm();
+  if (!o.titulo.trim()) return toast('Preencha o título.', 'err');
+  if (!o.data) return toast('Preencha a data.', 'err');
+  o.rascunho = b.dataset.acao === 'rascunho';
+  const { dados } = await lerJSON('data/posts.json');  // relê para não sobrescrever mudanças
+  const idAntigo = atual && atual.id;
+  o.id = idAntigo || slug(o.titulo);
+  if (!idAntigo) { let base = o.id, n = 2; while (dados.some(p => p.id === o.id)) o.id = base + '-' + n++; }
+  const lista = dados.filter(p => p.id !== idAntigo);
+  const post = { id: o.id, tipo: o.tipo, temas: o.temas, data: o.data, titulo: o.titulo.trim(), resumo: o.resumo.trim(), ...(o.serie ? { serie: o.serie, parte: o.parte || 1 } : {}), ...(o.rascunho ? { rascunho: true } : {}), md: o.md };
+  lista.push(post);
+  await gravarJSON('data/posts.json', lista, `${o.rascunho ? 'rascunho' : 'publica'}: ${post.titulo}`);
+  if (!atual) try { localStorage.removeItem('jjdba-novo'); } catch (e) {}
+  atual = post; posts = lista.sort((a, b) => b.data.localeCompare(a.data)); renderLista();
+  $('edTit').textContent = 'Editar post'; $('bDel').style.display = '';
+  const [s] = status(post);
+  toast(s === 'rascunho' ? 'Rascunho salvo.' : s === 'agendado' ? `Agendado para ${post.data.split('-').reverse().join('/')}.` : 'Publicado! No ar em ~1 minuto.');
+}));
+$('bDel').onclick = () => atual && confirm(`Excluir "${atual.titulo}"? Isso remove o post do site.`) && ocupado($('bDel'), async () => {
+  const { dados } = await lerJSON('data/posts.json');
+  const lista = dados.filter(p => p.id !== atual.id);
+  await gravarJSON('data/posts.json', lista, `remove: ${atual.titulo}`);
+  posts = lista; atual = null; renderLista(); ir('posts'); toast('Post excluído.');
+});
+
+// ---------- imagens ----------
+async function enviar(files) {
+  for (const f of files) {
+    if (f.size > 5e6) { toast(`${f.name}: máximo 5 MB.`, 'err'); continue; }
+    toast(`Enviando ${f.name}…`);
+    const buf = new Uint8Array(await f.arrayBuffer()); let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+    const nome = `img/posts/${Date.now()}-${slug(f.name.replace(/\.[^.]+$/, ''))}.${(f.name.split('.').pop() || 'png').toLowerCase()}`;
+    await gravar(nome, btoa(bin), `imagem: ${f.name}`);
+    const ta = $('f-md'), pos = ta.selectionStart ?? ta.value.length, ins = `\n![${f.name.replace(/\.[^.]+$/, '')}](${nome})\n`;
+    ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(pos); prev();
+    toast('Imagem enviada e inserida no texto.');
+  }
+}
+const drop = $('drop');
+drop.onclick = () => $('file').click();
+$('file').onchange = e => ocupado(null, () => enviar([...e.target.files]));
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); ocupado(null, () => enviar([...e.dataTransfer.files])); };
+$('f-md').addEventListener('paste', e => { const fs = [...e.clipboardData.files]; if (fs.length) { e.preventDefault(); ocupado(null, () => enviar(fs)); } });
+
+// ---------- certificações ----------
+function renderCerts() {
+  $('clista').innerHTML = certs.map((c, i) => `<tr data-i="${i}">
+    <td><input data-k="sigla" value="${esc(c.sigla)}" style="width:60px"></td><td><input data-k="nome" value="${esc(c.nome)}" style="min-width:240px"></td>
+    <td><input data-k="exame" value="${esc(c.exame)}" style="width:120px"></td><td><input data-k="data" value="${esc(c.data)}" style="width:100px"></td>
+    <td><select data-k="status">${['ok', 'andamento', 'planejada'].map(s => `<option value="${s}" ${c.status === s ? 'selected' : ''}>${{ ok: 'concluída', andamento: 'em preparação', planejada: 'planejada' }[s]}</option>`).join('')}</select></td>
+    <td><input data-k="img" value="${esc(c.img)}" placeholder="https://…" style="min-width:180px"></td><td><a style="cursor:pointer;color:#ff5f56" data-rm="${i}">✕</a></td></tr>`).join('');
+  $('clista').querySelectorAll('input,select').forEach(el => el.oninput = () => { const c = certs[+el.closest('tr').dataset.i]; c[el.dataset.k] = el.value; if (el.dataset.k === 'img' && !el.value) delete c.img; });
+  $('clista').querySelectorAll('[data-rm]').forEach(a => a.onclick = () => { certs.splice(+a.dataset.rm, 1); renderCerts(); });
+}
+$('cAdd').onclick = () => { certs.push({ sigla: '', nome: '', exame: '', data: '', status: 'planejada' }); renderCerts(); };
+$('cSalvar').onclick = () => ocupado($('cSalvar'), async () => { await gravarJSON('data/certs.json', certs, 'atualiza certificações'); toast('Certificações salvas. No ar em ~1 minuto.'); });
+</script></body></html>

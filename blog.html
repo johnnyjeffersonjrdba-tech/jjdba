@@ -22,6 +22,8 @@
   </div>
 </main>
 <script src="posts.js"></script><script src="layout.js"></script><script>
+dados.then(() => {
+
 const tipo = qs.get('tipo'), tema = qs.get('tema');
 const cab = {
   estudo: ['Estudos', 'Material de certificação', 'Resumos, laboratórios, pegadinhas de prova e o inglês que cai no exame.'],
@@ -47,4 +49,6 @@ const series = [...new Set(visiveis.map(p => p.serie).filter(Boolean))];
 if (!series.length) seriesBox.style.display = 'none';
 document.getElementById('series').innerHTML = series.map(s => `<a class="badge" href="trilha.html" style="text-decoration:none;color:inherit"><div class="h">${s.slice(-3)}</div><div><b>Guia ${s}</b><br><span class="meta">ler em ordem →</span></div></a>`).join('');
 document.getElementById('certs').innerHTML = `<div class="embs">${CERTS.filter(c => c.status !== 'planejada').map(certImg).join('')}</div><p style="margin:10px 0 0"><a href="certificacoes.html">Ver linha do tempo completa →</a></p>`;
+
+});
 </script></body></html>
