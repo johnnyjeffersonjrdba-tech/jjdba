@@ -9,4 +9,4 @@ document.body.insertAdjacentHTML('afterbegin', `<header class="top"><div class="
 ${links.map(([h, t]) => `<a href="${h}" class="${h === here ? 'on' : ''}">${t}</a>`).join('')}</nav></div></header>`);
 document.body.insertAdjacentHTML('beforeend', `<footer><div class="wrap wide" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between">
 <span>© 2026 jj_dba · Johnny Jefferson Jr.</span>
-<span><a href="blog.html">posts</a> · <a href="curriculo.html">currículo</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">linkedin</a> · <a href="escrever.html">autor</a></span></div></footer>`);
+<span><a href="blog.html">posts</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">linkedin</a> · <a href="escrever.html">autor</a></span></div></footer>`);
