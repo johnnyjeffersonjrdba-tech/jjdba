@@ -528,5 +528,514 @@
         ]
       }
     ]
+  },
+  {
+    "id": "1Z0-083",
+    "sigla": "083",
+    "nome": "Oracle Database Administration II",
+    "exame": "1Z0-083",
+    "status": "em_breve",
+    "descricao": "Multitenant, backup e recovery com RMAN, flashback, instalação, upgrade e tuning. Os artigos desta trilha serão publicados em breve.",
+    "oficial": "https://mylearn.oracle.com/ou/exam/oracle-database-administration-ii-1z0-083/105037/110676/170380",
+    "secoes": [
+      {
+        "titulo": "Creating CDBs and Regular PDBs",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Configure and create a CDB",
+            "posts": []
+          },
+          {
+            "t": "Create a new PDB from the CDB seed",
+            "posts": []
+          },
+          {
+            "t": "Explore the structure of PDBs",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Manage CDBs and PDBs",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Manage PDB service names and connections",
+            "posts": []
+          },
+          {
+            "t": "Manage startup, shutdown and availability of CDBs and PDBs",
+            "posts": []
+          },
+          {
+            "t": "Change the different modes and settings of PDBs",
+            "posts": []
+          },
+          {
+            "t": "Evaluate the impact of parameter value changes",
+            "posts": []
+          },
+          {
+            "t": "Performance management in CDBs and PDBs",
+            "posts": []
+          },
+          {
+            "t": "Control CDB and PDB resource usage with the Oracle Resource Manager",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Backup and Duplicate",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Perform Backup and Recover CDBs and PDBs",
+            "posts": []
+          },
+          {
+            "t": "Duplicate an active PDB",
+            "posts": []
+          },
+          {
+            "t": "Duplicate a Database",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Upgrading and Transporting CDBs and Regular PDBs",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Upgrade an Oracle Database",
+            "posts": []
+          },
+          {
+            "t": "Transport Data",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Manage Application PDBs",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Explain the purpose of application root and application seed",
+            "posts": []
+          },
+          {
+            "t": "Define and create application PDBs",
+            "posts": []
+          },
+          {
+            "t": "Install, upgrade and Patch applications",
+            "posts": []
+          },
+          {
+            "t": "Create and administer Application PDBs",
+            "posts": []
+          },
+          {
+            "t": "Clone PDBs and Application containers",
+            "posts": []
+          },
+          {
+            "t": "Plug and unplug operations with PDBs and application containers",
+            "posts": []
+          },
+          {
+            "t": "Comparing Local Undo Mode and Shared Undo Mode",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Manage Security in Multitenant databases",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Manage Security in Multitenant databases",
+            "posts": []
+          },
+          {
+            "t": "Manage PDB lockdown profiles",
+            "posts": []
+          },
+          {
+            "t": "Audit Users in CDBs and PDBs",
+            "posts": []
+          },
+          {
+            "t": "Manage other types of policies in application containers",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Recovery and Flashback",
+        "curso": "Managing Multitenant Architecture",
+        "topicos": [
+          {
+            "t": "Restore and Recovering Databases with RMAN",
+            "posts": []
+          },
+          {
+            "t": "Perform CDB and PDB flashback",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Backup Strategies and Terminology",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Perform Full and Incremental Backups and Recoveries",
+            "posts": []
+          },
+          {
+            "t": "Compress and Encrypt RMAN Backups",
+            "posts": []
+          },
+          {
+            "t": "Use a media manager",
+            "posts": []
+          },
+          {
+            "t": "Create multi-section backups of very large files",
+            "posts": []
+          },
+          {
+            "t": "Create duplexed backup sets",
+            "posts": []
+          },
+          {
+            "t": "Create archival backups",
+            "posts": []
+          },
+          {
+            "t": "Backup of recovery files",
+            "posts": []
+          },
+          {
+            "t": "Backup non database files",
+            "posts": []
+          },
+          {
+            "t": "Back up ASM meta data",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Restore and Recovery Concepts",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Employ the best Oracle Database recovery technology for your failure situation",
+            "posts": []
+          },
+          {
+            "t": "Describe and use Recovery technology for Crash, Complete, and Point-in-time recovery",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using Flashback Technologies",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Configure your Database to support Flashback",
+            "posts": []
+          },
+          {
+            "t": "Perform flashback operations",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Duplicating a Database",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Duplicate Databases",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Configuring and Using RMAN",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Configure RMAN and the Database for Recoverability",
+            "posts": []
+          },
+          {
+            "t": "Configure and Using an RMAN recovery catalog",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Diagnosing Failures",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Detect and repair database and database block corruption",
+            "posts": []
+          },
+          {
+            "t": "Diagnosing Database Issues",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Performing Recovery",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Restore and Recovering Databases with RMAN",
+            "posts": []
+          },
+          {
+            "t": "Perform Non RMAN database recovery",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Transporting Data",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Transport Data",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "RMAN Troubleshooting and Tuning",
+        "curso": "Backup and Recovery Workshop",
+        "topicos": [
+          {
+            "t": "Interpret the RMAN message output",
+            "posts": []
+          },
+          {
+            "t": "Diagnose RMAN performance issues",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Install Grid Infrastructure and Oracle Database",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Install Grid Infrastructure for a Standalone server",
+            "posts": []
+          },
+          {
+            "t": "Install Oracle Database software",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Patching Grid Infrastructure and Oracle Database",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Patch Grid Infrastructure and Oracle Database",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Upgrading to Oracle Grid Infrastructure",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Upgrade Oracle Grid Infrastructure",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Oracle Database 18c: New Features",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Image and RPM based Database Installation",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Creating an Oracle Database by using DBCA",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Create, Delete and Configure Databases using DBCA",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Oracle Restart",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Configure and use Oracle Restart to manage components",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Upgrade the Oracle Database",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Plan for Upgrading an Oracle Database",
+            "posts": []
+          },
+          {
+            "t": "Upgrade an Oracle Database",
+            "posts": []
+          },
+          {
+            "t": "Perform Post-Upgrade tasks",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Install Grid Infrastructure for a Standalone server",
+        "curso": "Deploy, Patch and Upgrade Workshop",
+        "topicos": [
+          {
+            "t": "Rapid Home Provisioning",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using General Overall Database Enhancements",
+        "curso": "19c: New Features for Administrators",
+        "topicos": [
+          {
+            "t": "Install Oracle Database software",
+            "posts": []
+          },
+          {
+            "t": "Create, Delete and Configure Databases using DBCA",
+            "posts": []
+          },
+          {
+            "t": "Creating CDBs and Regular PDBs",
+            "posts": []
+          },
+          {
+            "t": "Use Miscellaneous 19c New Features",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using Availability Enhancements",
+        "curso": "19c: New Features for Administrators",
+        "topicos": [
+          {
+            "t": "Use an RMAN recovery catalog",
+            "posts": []
+          },
+          {
+            "t": "Use Flashback Database",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using Diagnosability Enhancements",
+        "curso": "19c: New Features for Administrators",
+        "topicos": [
+          {
+            "t": "Use new Diagnosability Features",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Monitoring and Tuning Database Performance",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Managing Memory Components",
+            "posts": []
+          },
+          {
+            "t": "Understanding The Automatic Workload Repository (AWR)",
+            "posts": []
+          },
+          {
+            "t": "Understanding The Advisory Framework",
+            "posts": []
+          },
+          {
+            "t": "Monitoring Wait Events, Sessions, and Services",
+            "posts": []
+          },
+          {
+            "t": "Managing Metric Thresholds and Alerts",
+            "posts": []
+          },
+          {
+            "t": "Understanding and Using The Performance Tuning Methodology",
+            "posts": []
+          },
+          {
+            "t": "Performing Performance Planning",
+            "posts": []
+          },
+          {
+            "t": "Understanding The Automatic Database Diagnostic Monitor (ADDM)",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Tuning SQL Statements",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Understanding The Oracle Optimizer",
+            "posts": []
+          },
+          {
+            "t": "Using The SQL Tuning Advisor",
+            "posts": []
+          },
+          {
+            "t": "Managing Optimizer Statistics",
+            "posts": []
+          },
+          {
+            "t": "Using The SQL Access Advisor",
+            "posts": []
+          },
+          {
+            "t": "Understanding The SQL Tuning Process",
+            "posts": []
+          }
+        ]
+      }
+    ]
   }
 ]
