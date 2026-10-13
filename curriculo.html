@@ -1,7 +1,7 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Currículo</title><link rel="stylesheet" href="style.css?v=202610122151"></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Currículo</title><link rel="stylesheet" href="style.css?v=202610131903"></head><body>
 <main class="wrap"><section class="hero" style="padding-bottom:8px"><h1>Johnny Jefferson Ramos Jr.</h1><p><b>Oracle DBA</b> · <a href="mailto:johnnyjeffersonjrdba@gmail.com">johnnyjeffersonjrdba@gmail.com</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">linkedin.com/in/johnny-jeffersonjr</a></p><button class="btn noprint" onclick="print()" style="border:0;cursor:pointer">Imprimir / salvar PDF</button></section>
 <div class="card cv"><div>
-<h3>Resumo</h3><p>[COMPLETAR com o resumo do LinkedIn] Profissional de banco de dados com foco em administração Oracle, em preparação para a certificação 1Z0-082 (OCA/OCP 19c).</p>
+<h3>Resumo</h3><p>[COMPLETAR com o resumo do LinkedIn] Profissional de banco de dados com foco em administração Oracle.</p>
 <h3>Experiência</h3>
 <p><b>[Cargo]</b> — [Empresa] <span class="meta">· [mês/ano] – atual</span></p><ul><li>[Conquista com resultado mensurável]</li><li>[Conquista]</li></ul>
 <p><b>[Cargo anterior]</b> — [Empresa] <span class="meta">· [período]</span></p><ul><li>[Conquista]</li></ul>
@@ -12,7 +12,7 @@
 <h3>Formação</h3><p>[Curso] — [Instituição]</p>
 <h3>Idiomas</h3><p>Português (nativo) · Inglês (técnico)</p>
 </aside></div></main>
-<script src="posts.js?v=202610122151"></script><script src="layout.js?v=202610122151"></script><script>
+<script src="posts.js?v=202610131903"></script><script src="layout.js?v=202610131903"></script><script>
 dados.then(() => {
 document.getElementById('cv-certs').innerHTML = CERTS.filter(c => c.status !== 'planejada').map(c => `<li>${c.nome} <span class="meta">(${c.exame}${c.status === 'ok' ? ', ' + c.data : ', em preparação'})</span></li>`).join('');
 });

@@ -12,7 +12,8 @@ let POSTS = [], CERTS = [], visiveis = [];
 const dados = Promise.all(['data/posts.json', 'data/certs.json'].map(u => fetch(u, { cache: 'no-cache' }).then(r => r.json())))
   .then(([p, c]) => {
     POSTS = p.sort((a, b) => b.data.localeCompare(a.data));
-    CERTS = c;
+    // No site público aparecem só as certificações concluídas; as demais ficam visíveis apenas no /admin.
+    CERTS = c.filter(x => x.status === 'ok');
     visiveis = POSTS.filter(p => verRascunhos || (!p.rascunho && p.data <= hoje));
   });
 
