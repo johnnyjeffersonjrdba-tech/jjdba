@@ -39,7 +39,11 @@ if (contarAqui) {
 function mostrarVisitas(el, path = gcPath()) {
   if (!el) return;
   const alvo = path === 'TOTAL' ? 'TOTAL' : encodeURIComponent(path);
-  fetch(`https://${GOATCOUNTER}.goatcounter.com/counter/${alvo}.json`)
+  // O GoatCounter guarda a resposta por até 4h. Uma data de início (anterior ao blog) que muda a cada
+  // 10 minutos gera uma consulta nova, então o número fica no máximo ~10 min atrasado.
+  const slot = Math.floor(Date.now() / 6e5) % 3000;
+  const inicio = new Date(Date.UTC(2015, 0, 1) + slot * 864e5).toISOString().slice(0, 10);
+  fetch(`https://${GOATCOUNTER}.goatcounter.com/counter/${alvo}.json?start=${inicio}`)
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(j => { el.innerHTML = el.dataset.fmt.replace('{n}', j.count); el.hidden = false; })
     .catch(() => { el.hidden = true; });
