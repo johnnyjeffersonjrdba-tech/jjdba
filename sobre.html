@@ -1,11 +1,11 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sobre Mim</title><link rel="stylesheet" href="style.css?v=202610131940"></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sobre Mim</title><link rel="stylesheet" href="style.css?v=202610131946"></head><body>
 <main class="wrap"><section class="hero"><span class="tag">Sobre mim</span><h1>Johnny Jefferson Ramos Jr.</h1><p>Oracle DBA. Acredito que, para fortalecer o conhecimento e as boas práticas, nada funciona melhor do que compartilhar o que se aprende. Por isso publico aqui o que estudo e o que vivo no dia a dia.</p></section>
 <div class="card"><h2 style="margin-top:0">Por que este blog?</h2><p>Material de certificação em português costuma ser raro ou caro. Aqui você encontra explicações diretas, diagramas, laboratórios para reproduzir no seu ambiente e links para a documentação oficial da Oracle. Comece pelas <a href="trilhas.html">trilhas</a>.</p>
 <h2>O que vem por aí</h2><p>Novos artigos toda semana, com estudos de Oracle Database e cenários práticos de administração.</p>
 <h2 id="certificacoes">Certificações</h2><div class="embs" id="cert-emb" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin:12px 0 6px"></div><ul class="cert-lista" id="cert-lista"></ul>
 <h2>Contato</h2><p><a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a> · <a href="mailto:johnnyjeffersonjr@hotmail.com">johnnyjeffersonjr@hotmail.com</a></p>
 </div></main>
-<script src="posts.js?v=202610131940"></script><script src="layout.js?v=202610131940"></script><script>
+<script src="posts.js?v=202610131946"></script><script src="layout.js?v=202610131946"></script><script>
 dados.then(() => {
   document.getElementById('cert-emb').innerHTML = CERTS.map(certImg).join('');
   document.getElementById('cert-lista').innerHTML = CERTS.map(c => `<li><b>${c.nome}</b> <span class="meta">· ${c.exame} · ${c.data}</span></li>`).join('');
