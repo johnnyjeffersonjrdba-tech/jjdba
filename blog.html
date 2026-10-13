@@ -1,49 +1,48 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blog de DBA</title><link rel="stylesheet" href="style.css?v=202610131903"></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artigos</title><link rel="stylesheet" href="style.css?v=202610131934">
+<style>
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 26px}
+.filtros a{border:1px solid var(--line);border-radius:6px;padding:5px 14px;font-size:13px;color:var(--ink)}
+.filtros a span{color:var(--muted);margin-left:6px}
+.filtros a:hover{border-color:var(--accent);text-decoration:none}
+.filtros a.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}.filtros a.on span{color:var(--bg)}
+.tema-ativo{font-size:13px;color:var(--muted);margin:-14px 0 22px}.tema-ativo b{color:var(--accent)}
+</style></head><body>
 <main class="wrap wide">
   <div class="layout">
     <section>
-      <span class="tag" id="kicker"></span>
-      <h1 id="titulo" style="margin:6px 0 8px;font-size:clamp(28px,4vw,40px)"></h1>
-      <p class="meta" id="sub" style="margin:0 0 28px"></p>
+      <span class="tag">Artigos</span>
+      <h1 style="margin:6px 0 8px;font-size:clamp(28px,4vw,40px)">Oracle na prova e na prática</h1>
+      <p class="meta" style="margin:0 0 20px">Estudos para certificações e cenários práticos de DBA, em português e direto ao ponto.</p>
+      <nav class="filtros" id="filtros"></nav>
+      <p class="tema-ativo" id="temaAtivo" hidden></p>
       <div id="lista"></div>
     </section>
     <aside class="side">
       <div class="box"><input class="search" id="q" placeholder="Buscar artigos…"></div>
       <div class="box"><h4>Categorias</h4><div id="cats"></div></div>
-      <div class="box">
-        <img src="img/logo.webp" alt="JJ DBA" style="width:100%;border-radius:8px;aspect-ratio:3/1;object-fit:cover">
-        <h4 style="margin-top:12px">Johnny Jefferson Jr.</h4>
-        <p class="meta" style="margin:0 0 10px">Oracle DBA · 5 certificações Oracle. Compartilho o que estudo e o que aprendo no dia a dia como DBA.</p>
-        <a href="sobre.html">Sobre mim</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>
-      </div>
-      <div class="box" id="seriesBox"><h4>Guias de estudo</h4><div id="series"></div></div>
-      <div class="box"><h4>Certificações <span class="meta" style="font-family:Inter;font-size:13px">· 5 concluídas</span></h4><div id="certs"></div></div>
+      <div class="box"><h4>Trilhas de estudo</h4><a class="badge" href="trilhas.html" style="text-decoration:none;color:inherit"><div class="h">082</div><div><b>1Z0-082</b><br><span class="meta">tópicos da prova e artigos →</span></div></a></div>
     </aside>
   </div>
 </main>
-<script src="posts.js?v=202610131903"></script><script src="layout.js?v=202610131903"></script><script>
+<script src="posts.js?v=202610131934"></script><script src="layout.js?v=202610131934"></script><script>
 dados.then(() => {
 
 const tipo = qs.get('tipo'), tema = qs.get('tema');
-const cab = {
-  estudo: ['Estudos', 'Material de certificação', 'Resumos, laboratórios, pegadinhas de prova e o inglês que cai no exame.'],
-  pratica: ['Na prática', 'Cenários práticos, passo a passo', 'Instalações, migrações e troubleshooting reproduzidos em laboratório, sem dados de clientes — com os comandos e as lições aprendidas.']
-}[tipo] || [tema ? 'Tema' : 'Blog', tema || 'Oracle na prova e na prática', 'Estudos para certificações e cenários práticos de DBA, em português e direto ao ponto.'];
-[kicker.textContent, titulo.textContent, sub.textContent] = cab;
-const cores = ['c1', '', 'c2', 'c3'];
+const extra = verRascunhos ? '&rascunhos' : '';
+const url = (t, m) => 'blog.html?' + [t && 'tipo=' + t, m && 'tema=' + encodeURIComponent(m)].filter(Boolean).join('&') + extra;
+const conta = t => visiveis.filter(p => (!t || p.tipo === t) && (!tema || p.temas.includes(tema))).length;
+filtros.innerHTML = [['', 'Todos'], ['estudo', 'Estudos'], ['pratica', 'Na prática']]
+  .map(([t, nome]) => `<a href="${url(t, tema)}" class="${(tipo || '') === t ? 'on' : ''}">${nome}<span>${conta(t)}</span></a>`).join('');
+if (tema) { temaAtivo.hidden = false; temaAtivo.innerHTML = `Tema: <b>${tema}</b> · <a href="${url(tipo, '')}">limpar</a>`; }
 let busca = '';
 function render() {
   const lista = visiveis.filter(p => (!tipo || p.tipo === tipo) && (!tema || p.temas.includes(tema)) &&
     (p.titulo + p.resumo + p.temas.join(' ')).toLowerCase().includes(busca));
-  document.getElementById('lista').innerHTML = lista.map(cardPost).join('') || `<div class="card"><p class="meta" style="margin:0">-- 0 rows selected. O primeiro artigo desta seção sai em breve.</p></div>`;
+  document.getElementById('lista').innerHTML = lista.map(cardPost).join('') || `<div class="card"><p class="meta" style="margin:0">-- 0 rows selected. ${busca ? 'Nenhum artigo encontrado.' : 'O primeiro artigo desta seção sai em breve.'}</p></div>`;
 }
-document.getElementById('cats').innerHTML = TEMAS.map(t => { const n = visiveis.filter(p => p.temas.includes(t)).length; return `<a class="catl ${t === tema ? 'on' : ''}" href="blog.html?tema=${encodeURIComponent(t)}">${t}<span>${n}</span></a>`; }).join('');
+document.getElementById('cats').innerHTML = TEMAS.map(t => { const n = visiveis.filter(p => p.temas.includes(t)).length; return `<a class="catl ${t === tema ? 'on' : ''}" href="${url(tipo, t === tema ? '' : t)}">${t}<span>${n}</span></a>`; }).join('');
 q.oninput = e => { busca = e.target.value.toLowerCase(); render(); };
 render();
-const series = [...new Set(visiveis.map(p => p.serie).filter(Boolean))];
-if (!series.length) seriesBox.style.display = 'none';
-document.getElementById('series').innerHTML = series.map(s => `<a class="badge" href="trilha.html" style="text-decoration:none;color:inherit"><div class="h">${s.slice(-3)}</div><div><b>Guia ${s}</b><br><span class="meta">ler em ordem →</span></div></a>`).join('');
-document.getElementById('certs').innerHTML = `<div class="embs">${CERTS.filter(c => c.status !== 'planejada').map(certImg).join('')}</div><p style="margin:10px 0 0"><a href="certificacoes.html">Ver linha do tempo completa →</a></p>`;
 
 });
 </script></body></html>

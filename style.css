@@ -85,3 +85,4 @@ article pre code{padding:0;background:none;border-radius:0;font-size:13.5px}
 .pre-rot{position:absolute;top:10px;left:16px;font:12px var(--mono);color:var(--muted)}
 .box.autor{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card)}
 .foto-autor{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;margin-bottom:12px}
+.cert-lista{padding-left:18px;margin:0 0 18px}.cert-lista li{margin:4px 0}

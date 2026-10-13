@@ -2,8 +2,8 @@
 document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"><link rel="icon" href="img/logo.svg">');
 const qs = new URLSearchParams(location.search);
 const pag = location.pathname.split('/').pop() || 'index.html';
-const here = pag + (qs.get('tipo') ? '?tipo=' + qs.get('tipo') : '');
-const links = [['blog.html?tipo=estudo', '~/estudos'], ['blog.html?tipo=pratica', '~/na-pratica'], ['temas.html', '~/temas'], ['certificacoes.html', '~/certificacoes'], ['sobre.html', '~/sobre']];
+const here = pag === 'post.html' ? 'blog.html' : pag;
+const links = [['blog.html', '~/artigos'], ['trilhas.html', '~/trilhas'], ['sobre.html', '~/sobre']];
 document.body.insertAdjacentHTML('afterbegin', `<header class="top"><div class="wrap wide"><nav>
 <a class="brand" href="index.html"><img src="img/logo.svg" alt="JJ DBA"></a>
 ${links.map(([h, t]) => `<a href="${h}" class="${h === here ? 'on' : ''}">${t}</a>`).join('')}</nav></div></header>`);

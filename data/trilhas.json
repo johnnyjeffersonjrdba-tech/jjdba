@@ -1,0 +1,532 @@
+[
+  {
+    "id": "1Z0-082",
+    "sigla": "082",
+    "nome": "Oracle Database Administration I",
+    "exame": "1Z0-082",
+    "status": "estudando",
+    "descricao": "Fundamentos de administração do Oracle Database 19c e SQL. Cada tópico oficial do exame aponta para o artigo do blog que trata dele.",
+    "oficial": "https://mylearn.oracle.com/ou/exam/oracle-database-administration-i-1z0-082/105037/110677/170382",
+    "secoes": [
+      {
+        "titulo": "Understanding Oracle Database Architecture",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Understanding Oracle Database Instance Configurations",
+            "posts": [
+              "arquitetura-oracle-instancia"
+            ]
+          },
+          {
+            "t": "Understanding Oracle Database Memory and Process Structures",
+            "posts": [
+              "arquitetura-oracle-instancia"
+            ]
+          },
+          {
+            "t": "Understanding Logical and Physical Database Structures",
+            "posts": [
+              "armazenamento-oracle-logico-fisico"
+            ]
+          },
+          {
+            "t": "Understanding Oracle Database Server Architecture",
+            "posts": [
+              "arquitetura-oracle-instancia",
+              "armazenamento-oracle-logico-fisico"
+            ]
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Database Instances",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Starting Up Oracle Database Instances",
+            "posts": []
+          },
+          {
+            "t": "Using Data Dictionary Views",
+            "posts": []
+          },
+          {
+            "t": "Shutting Down Oracle Database Instances",
+            "posts": []
+          },
+          {
+            "t": "Using Dynamic Performance Views",
+            "posts": []
+          },
+          {
+            "t": "Using the Automatic Diagnostic Repository (ADR)",
+            "posts": []
+          },
+          {
+            "t": "Using the Alert Log and Trace Files",
+            "posts": [
+              "armazenamento-oracle-logico-fisico"
+            ]
+          },
+          {
+            "t": "Managing Initialization Parameter Files",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Users, Roles and Privileges",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Assigning Quotas to Users",
+            "posts": []
+          },
+          {
+            "t": "Applying the Principle of Least Privilege",
+            "posts": []
+          },
+          {
+            "t": "Creating and Assigning Profiles",
+            "posts": []
+          },
+          {
+            "t": "Administering User Authentication Methods",
+            "posts": []
+          },
+          {
+            "t": "Managing Oracle Database Users, Privileges, and Roles",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Storage",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Managing Resumable Space Allocation",
+            "posts": []
+          },
+          {
+            "t": "Shrinking Segments",
+            "posts": []
+          },
+          {
+            "t": "Deferring Segment Creation",
+            "posts": [
+              "armazenamento-oracle-logico-fisico"
+            ]
+          },
+          {
+            "t": "Using Space-Saving Features",
+            "posts": []
+          },
+          {
+            "t": "Deploying Oracle Database Space Management Features",
+            "posts": []
+          },
+          {
+            "t": "Managing Different Types of Segments",
+            "posts": []
+          },
+          {
+            "t": "Using Table and Row Compression",
+            "posts": []
+          },
+          {
+            "t": "Understanding Block Space Management",
+            "posts": [
+              "armazenamento-oracle-logico-fisico"
+            ]
+          }
+        ]
+      },
+      {
+        "titulo": "Moving Data",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Using External Tables",
+            "posts": []
+          },
+          {
+            "t": "Using Oracle Data Pump",
+            "posts": []
+          },
+          {
+            "t": "Using SQL*Loader",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Accessing an Oracle Database with Oracle supplied Tools",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Using the Database Configuration Assistant (DBCA)",
+            "posts": []
+          },
+          {
+            "t": "Using Oracle Enterprise Manager Cloud Control",
+            "posts": []
+          },
+          {
+            "t": "Using Oracle Enterprise Manager Database Express",
+            "posts": []
+          },
+          {
+            "t": "Using SQL Developer",
+            "posts": []
+          },
+          {
+            "t": "Using SQL*Plus",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Configuring Oracle Net Services",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Using Oracle Net Services Administration Tools",
+            "posts": []
+          },
+          {
+            "t": "Configuring Communication Between Database Instances",
+            "posts": []
+          },
+          {
+            "t": "Configuring the Oracle Net Listener",
+            "posts": []
+          },
+          {
+            "t": "Connecting to an Oracle Database Instance",
+            "posts": []
+          },
+          {
+            "t": "Comparing Dedicated and Shared Server Configurations",
+            "posts": [
+              "arquitetura-oracle-instancia"
+            ]
+          },
+          {
+            "t": "Administering Naming Methods",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Tablespaces and Datafiles",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Viewing Tablespace Information",
+            "posts": []
+          },
+          {
+            "t": "Creating, Altering and Dropping Tablespaces",
+            "posts": []
+          },
+          {
+            "t": "Managing Table Data Storage",
+            "posts": []
+          },
+          {
+            "t": "Implementing Oracle Managed Files",
+            "posts": []
+          },
+          {
+            "t": "Moving and Renaming Online Data Files",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Undo",
+        "curso": "Administration Workshop",
+        "topicos": [
+          {
+            "t": "Understanding Transactions and Undo Data",
+            "posts": []
+          },
+          {
+            "t": "Storing Undo Information",
+            "posts": []
+          },
+          {
+            "t": "Configuring Undo Retention",
+            "posts": []
+          },
+          {
+            "t": "Comparing Undo Data and Redo Data",
+            "posts": []
+          },
+          {
+            "t": "Understanding Temporary Undo",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Retrieving Data using the SQL SELECT Statement",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Using Column aliases",
+            "posts": []
+          },
+          {
+            "t": "Using The DESCRIBE command",
+            "posts": []
+          },
+          {
+            "t": "Using The SQL SELECT statement",
+            "posts": []
+          },
+          {
+            "t": "Using concatenation operator, literal character strings, alternative quote operator, and the DISTINCT keyword",
+            "posts": []
+          },
+          {
+            "t": "Using Arithmetic expressions and NULL values in the SELECT statement",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Restricting and Sorting Data",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Applying Rules of precedence for operators in an expression",
+            "posts": []
+          },
+          {
+            "t": "Limiting Rows Returned in a SQL Statement",
+            "posts": []
+          },
+          {
+            "t": "Using Substitution Variables",
+            "posts": []
+          },
+          {
+            "t": "Using the DEFINE and VERIFY commands",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using Single-Row Functions to Customize Output",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Manipulating strings with character functions in SQL SELECT and WHERE clauses",
+            "posts": []
+          },
+          {
+            "t": "Performing arithmetic with date data",
+            "posts": []
+          },
+          {
+            "t": "Manipulating numbers with the ROUND, TRUNC and MOD functions",
+            "posts": []
+          },
+          {
+            "t": "Manipulating dates with the date function",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using Conversion Functions and Conditional Expressions",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Applying the NVL, NULLIF, and COALESCE functions to data",
+            "posts": []
+          },
+          {
+            "t": "Understanding implicit and explicit data type conversion",
+            "posts": []
+          },
+          {
+            "t": "Using the TO_CHAR, TO_NUMBER, and TO_DATE conversion functions",
+            "posts": []
+          },
+          {
+            "t": "Nesting multiple functions",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Reporting Aggregated Data Using Group Functions",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Restricting Group Results",
+            "posts": []
+          },
+          {
+            "t": "Creating Groups of Data",
+            "posts": []
+          },
+          {
+            "t": "Using Group Functions",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Displaying Data from Multiple Tables Using Joins",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Using Self-joins",
+            "posts": []
+          },
+          {
+            "t": "Using Various Types of Joins",
+            "posts": []
+          },
+          {
+            "t": "Using Non equijoins",
+            "posts": []
+          },
+          {
+            "t": "Using OUTER joins",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using Subqueries to Solve Queries",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Using Single Row Subqueries",
+            "posts": []
+          },
+          {
+            "t": "Using Multiple Row Subqueries",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Using SET Operators",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Matching the SELECT statements",
+            "posts": []
+          },
+          {
+            "t": "Using the ORDER BY clause in set operations",
+            "posts": []
+          },
+          {
+            "t": "Using The INTERSECT operator",
+            "posts": []
+          },
+          {
+            "t": "Using The MINUS operator",
+            "posts": []
+          },
+          {
+            "t": "Using The UNION and UNION ALL operators",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Tables using DML statements",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Managing Database Transactions",
+            "posts": []
+          },
+          {
+            "t": "Using Data Manipulation Language",
+            "posts": []
+          },
+          {
+            "t": "Controlling transactions",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Understanding Data Definition Language",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Using Data Definition Language",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Views",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Managing Views",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Sequences, Synonyms, Indexes",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Managing Indexes",
+            "posts": []
+          },
+          {
+            "t": "Managing Synonyms",
+            "posts": []
+          },
+          {
+            "t": "Managing Sequences",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Schema Objects",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Creating and using temporary tables",
+            "posts": []
+          },
+          {
+            "t": "Managing constraints",
+            "posts": []
+          }
+        ]
+      },
+      {
+        "titulo": "Managing Data in Different Time Zones",
+        "curso": "Introduction to SQL",
+        "topicos": [
+          {
+            "t": "Working with CURRENT_DATE, CURRENT_TIMESTAMP, and LOCALTIMESTAMP",
+            "posts": []
+          },
+          {
+            "t": "Working with INTERVAL data types",
+            "posts": []
+          }
+        ]
+      }
+    ]
+  }
+]

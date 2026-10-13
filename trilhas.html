@@ -1,0 +1,51 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610131934">
+<style>
+.carrossel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 14px}
+.carrossel::-webkit-scrollbar{height:6px}.carrossel::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.cert{flex:0 0 300px;scroll-snap-align:start;border:1px solid var(--line);border-radius:12px;padding:18px;background:var(--card);cursor:pointer;color:var(--ink);text-align:left;font:inherit;transition:border-color .2s,transform .2s}
+.cert:hover{border-color:var(--accent);transform:translateY(-2px)}.cert.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 30px #39ff8818}
+.cert .sig{font-size:34px;font-weight:700;color:var(--accent)}.cert b{display:block;margin:6px 0 4px;font-size:16px}
+.cert .bar{height:6px;background:var(--code);border-radius:99px;overflow:hidden;margin:12px 0 6px}.cert .bar i{display:block;height:100%;background:var(--accent)}
+.cert.vazio{cursor:default;opacity:.5;border-style:dashed}.cert.vazio:hover{transform:none;border-color:var(--line)}
+.sel-tag{font-size:11px;color:var(--bg);background:var(--accent);border-radius:4px;padding:1px 7px;font-weight:700}
+.secao{margin-top:30px}.secao h2{font-size:18px;margin:0 0 2px}.secao h2:before{content:'## ';color:var(--accent)}
+.curso{font-size:12px;color:var(--muted)}
+.topicos{list-style:none;padding:0;margin:10px 0 0}
+.topicos li{display:flex;gap:12px;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.topicos li span.t{color:var(--ink)}.topicos li .lk{white-space:nowrap;font-size:13px}
+.topicos li .lk a{border:1px solid var(--accent);border-radius:4px;padding:1px 8px;margin-left:6px}.topicos li .lk a:hover{background:var(--accent);color:var(--bg);text-decoration:none}
+.topicos li .breve{color:var(--muted);font-size:12px}
+.resumo-trilha{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}.resumo-trilha b{color:var(--accent)}
+@media(max-width:600px){.topicos li{flex-direction:column;gap:4px}}
+</style></head><body>
+<main class="wrap">
+  <section class="hero" style="padding-bottom:8px"><span class="tag">Trilhas</span><h1>Trilhas de estudo</h1>
+    <p>Escolha uma certificação para ver todos os tópicos oficiais do exame e o artigo do blog que trata de cada um.</p></section>
+  <div class="carrossel" id="car"></div>
+  <div id="det"></div>
+</main>
+<script src="posts.js?v=202610131934"></script><script src="layout.js?v=202610131934"></script><script>
+let TRILHAS = [];
+Promise.all([dados, fetch('data/trilhas.json', { cache: 'no-cache' }).then(r => r.json()).then(t => TRILHAS = t)]).then(() => {
+  const byId = Object.fromEntries(visiveis.map(p => [p.id, p]));
+  const cobertos = tr => { const ts = tr.secoes.flatMap(s => s.topicos); return [ts.filter(t => t.posts.some(id => byId[id])).length, ts.length]; };
+  let atual = qs.get('cert') || (TRILHAS[0] && TRILHAS[0].id);
+  function render() {
+    car.innerHTML = TRILHAS.map(tr => { const [c, n] = cobertos(tr); return `<button class="cert ${tr.id === atual ? 'on' : ''}" data-id="${tr.id}">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="sig">${tr.sigla}</span>${tr.status === 'estudando' ? '<span class="sel-tag">ESTUDANDO</span>' : ''}</div>
+      <b>${tr.nome}</b><span class="meta">Exame ${tr.exame}</span>
+      <div class="bar"><i style="width:${Math.round(c / n * 100)}%"></i></div><span class="meta">${c} de ${n} tópicos com artigo</span></button>`; }).join('')
+      + `<div class="cert vazio"><span class="sig" style="color:var(--muted)">+</span><b>Próximas trilhas</b><span class="meta">em breve</span></div>`;
+    car.querySelectorAll('[data-id]').forEach(b => b.onclick = () => { atual = b.dataset.id; history.replaceState(null, '', '?cert=' + atual + (location.search.includes('rascunhos') ? '&rascunhos' : '')); render(); });
+    const tr = TRILHAS.find(t => t.id === atual); if (!tr) { det.innerHTML = ''; return; }
+    const [c, n] = cobertos(tr);
+    det.innerHTML = `<section class="secao" style="margin-top:16px"><h1 style="font-size:24px;margin:0">${tr.nome} <span class="meta" style="font-size:15px">· ${tr.exame}</span></h1>
+      <p class="meta" style="margin:6px 0 0">${tr.descricao}</p>
+      <div class="resumo-trilha"><span><b>${tr.secoes.length}</b> seções</span><span><b>${n}</b> tópicos oficiais</span><span><b>${c}</b> com artigo publicado</span><a href="${tr.oficial}" target="_blank" rel="noopener">página oficial do exame ↗</a></div></section>`
+      + tr.secoes.map(s => `<section class="secao"><h2>${s.titulo}</h2><span class="curso">Oracle Database: ${s.curso}</span><ul class="topicos">${s.topicos.map(t => {
+          const ps = t.posts.map(id => byId[id]).filter(Boolean);
+          return `<li><span class="t">${t.t}</span><span class="lk">${ps.length ? ps.map(p => `<a href="post.html?id=${p.id}" title="${p.titulo}">${p.parte ? 'Parte ' + p.parte : 'Artigo'}</a>`).join('') : '<span class="breve">em breve</span>'}</span></li>`; }).join('')}</ul></section>`).join('');
+  }
+  render();
+});
+</script></body></html>

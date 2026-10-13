@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#39ff88" stroke-opacity=".06"/></pattern>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#grid)"/>
+  <text x="48" y="62" font-size="20" fill="#39ff88">GUIA 1Z0-082 · PARTE 2</text>
+  <text x="48" y="112" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="#fff">Armazenamento no Oracle Database</text>
+  <text x="48" y="146" font-size="18" fill="#7f9686">estruturas lógicas · arquivos físicos · redo · instance recovery</text>
+
+  <!-- pirâmide lógica -->
+  <g font-size="18" font-weight="700" text-anchor="middle">
+    <rect x="48" y="190" width="560" height="74" rx="10" fill="#39ff88" fill-opacity=".14" stroke="#39ff88" stroke-width="2"/>
+    <text x="328" y="234" fill="#39ff88">TABLESPACE</text>
+    <rect x="98" y="278" width="460" height="74" rx="10" fill="#ffb02e" fill-opacity=".14" stroke="#ffb02e" stroke-width="2"/>
+    <text x="328" y="322" fill="#ffb02e">SEGMENTO</text>
+    <rect x="148" y="366" width="360" height="74" rx="10" fill="#5fd3ff" fill-opacity=".14" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="328" y="410" fill="#5fd3ff">EXTENT</text>
+    <rect x="198" y="454" width="260" height="74" rx="10" fill="#e6ede8" fill-opacity=".1" stroke="#e6ede8" stroke-width="2"/>
+    <text x="328" y="498" fill="#e6ede8">DATA BLOCK</text>
+  </g>
+  <text x="328" y="560" text-anchor="middle" font-size="16" fill="#7f9686">LÓGICO — gerenciado pelo Oracle</text>
+
+  <!-- ponte -->
+  <path d="M620 227 H700" stroke="#39ff88" stroke-width="3" stroke-dasharray="8 6"/>
+  <text x="660" y="214" text-anchor="middle" font-size="13" fill="#39ff88">é feita de</text>
+
+  <!-- físico -->
+  <g font-size="17">
+    <rect x="708" y="190" width="524" height="74" rx="10" fill="#121a15" stroke="#ffb02e" stroke-width="2"/>
+    <text x="730" y="222" font-weight="700" fill="#ffb02e">datafiles · tempfiles</text><text x="730" y="248" font-size="14" fill="#b8c2bb">dados das tablespaces</text>
+    <rect x="708" y="278" width="524" height="74" rx="10" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="730" y="310" font-weight="700" fill="#5fd3ff">control files</text><text x="730" y="336" font-size="14" fill="#b8c2bb">mapa físico do banco · lido no MOUNT</text>
+    <rect x="708" y="366" width="524" height="74" rx="10" fill="#121a15" stroke="#39ff88" stroke-width="2"/>
+    <text x="730" y="398" font-weight="700" fill="#39ff88">online redo logs</text><text x="730" y="424" font-size="14" fill="#b8c2bb">grupos e membros · uso circular</text>
+    <rect x="708" y="454" width="524" height="74" rx="10" fill="none" stroke="#7f9686" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="730" y="486" font-weight="700" fill="#b8c2bb">fora do banco</text><text x="730" y="512" font-size="14" fill="#7f9686">spfile · password file · alert/trace · archived logs</text>
+  </g>
+  <text x="970" y="560" text-anchor="middle" font-size="16" fill="#7f9686">FÍSICO — arquivos no disco</text>
+
+  <rect x="48" y="596" width="1184" height="76" rx="10" fill="#0b0f0c" stroke="#1c2a21"/>
+  <text x="70" y="628" font-size="15" fill="#e6ede8">extent fica em 1 datafile · segmento fica em 1 tablespace · data block = N blocos do SO</text>
+  <text x="70" y="654" font-size="15" fill="#7f9686">após uma queda, o SMON faz roll forward (redo) e roll back (undo)</text>
+  <text x="1232" y="706" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e6ede8"/></marker></defs>
+  <rect width="1200" height="520" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Instance recovery (feito pelo SMON)</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">Automático no STARTUP depois de uma queda ou SHUTDOWN ABORT</text>
+
+  <g font-size="16">
+    <rect x="40" y="130" width="250" height="230" rx="12" fill="#121a15" stroke="#ff5f56" stroke-width="2"/>
+    <text x="60" y="164" font-size="18" font-weight="700" fill="#ff5f56">Após a queda</text>
+    <text x="60" y="200" fill="#e6ede8">datafiles podem ter:</text>
+    <text x="60" y="232" fill="#b8c2bb">• mudanças confirmadas</text>
+    <text x="76" y="254" fill="#b8c2bb">que faltam</text>
+    <text x="60" y="286" fill="#b8c2bb">• mudanças não</text>
+    <text x="76" y="308" fill="#b8c2bb">confirmadas que</text>
+    <text x="76" y="330" fill="#b8c2bb">já foram gravadas</text>
+
+    <path d="M296 245 H352" stroke="#e6ede8" stroke-width="2.5" marker-end="url(#w)"/>
+
+    <rect x="360" y="130" width="370" height="230" rx="12" fill="#39ff88" fill-opacity=".08" stroke="#39ff88" stroke-width="2.5"/>
+    <text x="380" y="164" font-size="18" font-weight="700" fill="#39ff88">1. Roll forward</text>
+    <text x="380" y="188" font-size="14" fill="#7f9686">(cache recovery)</text>
+    <text x="380" y="226" fill="#e6ede8">reaplica o ONLINE REDO</text>
+    <text x="380" y="252" fill="#e6ede8">nos datafiles</text>
+    <text x="380" y="292" fill="#b8c2bb">o redo também protege o undo:</text>
+    <text x="380" y="316" fill="#b8c2bb">os segmentos de undo são</text>
+    <text x="380" y="340" fill="#b8c2bb">regenerados</text>
+
+    <path d="M736 245 H792" stroke="#e6ede8" stroke-width="2.5" marker-end="url(#w)"/>
+
+    <rect x="800" y="130" width="360" height="230" rx="12" fill="#ffb02e" fill-opacity=".08" stroke="#ffb02e" stroke-width="2.5"/>
+    <text x="820" y="164" font-size="18" font-weight="700" fill="#ffb02e">2. Roll back</text>
+    <text x="820" y="188" font-size="14" fill="#7f9686">(transaction recovery)</text>
+    <text x="820" y="226" fill="#e6ede8">usa o UNDO para desfazer</text>
+    <text x="820" y="252" fill="#e6ede8">o que não foi confirmado</text>
+    <text x="820" y="292" fill="#b8c2bb">novas transações podem</text>
+    <text x="820" y="316" fill="#b8c2bb">desfazer sozinhas os blocos</text>
+    <text x="820" y="340" fill="#b8c2bb">de que precisam</text>
+  </g>
+  <rect x="40" y="396" width="1120" height="84" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="64" y="430" font-size="16" fill="#e6ede8">Ordem: primeiro REDO (refaz tudo), depois UNDO (desfaz o que não teve COMMIT).</text>
+  <text x="64" y="458" font-size="16" fill="#7f9686">Instance recovery usa só o online redo; archived logs são para media recovery.</text>
+  <text x="1160" y="506" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>

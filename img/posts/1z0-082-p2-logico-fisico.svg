@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f9686"/></marker></defs>
+  <rect width="1200" height="640" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Lógico × físico: a tablespace é a ponte</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">O Oracle gerencia o lado lógico; o sistema operacional só enxerga arquivos</text>
+
+  <!-- colunas -->
+  <text x="40" y="130" font-size="18" font-weight="700" fill="#39ff88">LÓGICO (Oracle)</text>
+  <text x="700" y="130" font-size="18" font-weight="700" fill="#5fd3ff">FÍSICO (sistema operacional)</text>
+  <line x1="640" y1="110" x2="640" y2="600" stroke="#1c2a21" stroke-width="2"/>
+
+  <!-- tablespace -->
+  <rect x="40" y="150" width="560" height="430" rx="12" fill="#39ff88" fill-opacity=".05" stroke="#39ff88" stroke-width="2"/>
+  <text x="58" y="180" font-size="17" font-weight="700" fill="#39ff88">TABLESPACE  USERS</text>
+  <!-- segmento -->
+  <rect x="62" y="196" width="516" height="368" rx="10" fill="#121a15" stroke="#ffb02e" stroke-width="2"/>
+  <text x="80" y="224" font-size="16" font-weight="700" fill="#ffb02e">SEGMENTO  (tabela HR.EMPLOYEES)</text>
+  <!-- extent 1 -->
+  <rect x="82" y="240" width="476" height="140" rx="8" fill="#0b0f0c" stroke="#5fd3ff" stroke-width="2"/>
+  <text x="98" y="266" font-size="15" font-weight="700" fill="#5fd3ff">EXTENT 1  → users01.dbf</text>
+  <g fill="#e6ede8" fill-opacity=".1" stroke="#e6ede8" stroke-opacity=".5">
+    <rect x="98" y="282" width="60" height="40" rx="4"/><rect x="166" y="282" width="60" height="40" rx="4"/><rect x="234" y="282" width="60" height="40" rx="4"/><rect x="302" y="282" width="60" height="40" rx="4"/>
+    <rect x="370" y="282" width="60" height="40" rx="4"/><rect x="438" y="282" width="60" height="40" rx="4"/>
+  </g>
+  <text x="98" y="352" font-size="14" fill="#b8c2bb">data blocks contíguos (ex.: 8 KB cada)</text>
+  <!-- extent 2 -->
+  <rect x="82" y="396" width="476" height="140" rx="8" fill="#0b0f0c" stroke="#5fd3ff" stroke-width="2"/>
+  <text x="98" y="422" font-size="15" font-weight="700" fill="#5fd3ff">EXTENT 2  → users02.dbf</text>
+  <g fill="#e6ede8" fill-opacity=".1" stroke="#e6ede8" stroke-opacity=".5">
+    <rect x="98" y="438" width="60" height="40" rx="4"/><rect x="166" y="438" width="60" height="40" rx="4"/><rect x="234" y="438" width="60" height="40" rx="4"/><rect x="302" y="438" width="60" height="40" rx="4"/>
+  </g>
+  <text x="98" y="508" font-size="14" fill="#b8c2bb">o mesmo segmento pode usar outro datafile da tablespace</text>
+
+  <!-- físico -->
+  <g font-size="16">
+    <rect x="700" y="230" width="440" height="110" rx="10" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="720" y="262" font-weight="700" fill="#5fd3ff">users01.dbf  (datafile)</text>
+    <g fill="#5fd3ff" fill-opacity=".15" stroke="#5fd3ff" stroke-opacity=".5">
+      <rect x="720" y="280" width="26" height="40"/><rect x="750" y="280" width="26" height="40"/><rect x="780" y="280" width="26" height="40"/><rect x="810" y="280" width="26" height="40"/><rect x="840" y="280" width="26" height="40"/><rect x="870" y="280" width="26" height="40"/><rect x="900" y="280" width="26" height="40"/><rect x="930" y="280" width="26" height="40"/>
+    </g>
+    <text x="970" y="306" font-size="13" fill="#b8c2bb">blocos do SO</text>
+    <rect x="700" y="388" width="440" height="110" rx="10" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="720" y="420" font-weight="700" fill="#5fd3ff">users02.dbf  (datafile)</text>
+    <g fill="#5fd3ff" fill-opacity=".15" stroke="#5fd3ff" stroke-opacity=".5">
+      <rect x="720" y="438" width="26" height="40"/><rect x="750" y="438" width="26" height="40"/><rect x="780" y="438" width="26" height="40"/><rect x="810" y="438" width="26" height="40"/><rect x="840" y="438" width="26" height="40"/>
+    </g>
+    <text x="970" y="464" font-size="13" fill="#b8c2bb">blocos do SO</text>
+  </g>
+  <path d="M558 310 H692" stroke="#7f9686" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a)"/>
+  <path d="M558 466 H692" stroke="#7f9686" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a)"/>
+
+  <g font-size="15">
+    <text x="700" y="540" fill="#e6ede8">• extent: sempre dentro de 1 datafile</text>
+    <text x="700" y="566" fill="#e6ede8">• segmento: sempre dentro de 1 tablespace</text>
+    <text x="700" y="592" fill="#e6ede8">• data block = N blocos do SO</text>
+  </g>
+  <text x="1160" y="624" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>
