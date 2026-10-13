@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610131934">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610131940">
 <style>
 .carrossel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 14px}
 .carrossel::-webkit-scrollbar{height:6px}.carrossel::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
@@ -6,6 +6,7 @@
 .cert:hover{border-color:var(--accent);transform:translateY(-2px)}.cert.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 30px #39ff8818}
 .cert .sig{font-size:34px;font-weight:700;color:var(--accent)}.cert b{display:block;margin:6px 0 4px;font-size:16px}
 .cert .bar{height:6px;background:var(--code);border-radius:99px;overflow:hidden;margin:12px 0 6px}.cert .bar i{display:block;height:100%;background:var(--accent)}
+/* trilhas futuras */ .sel-tag.breve-tag{background:var(--line);color:var(--ink)}
 .cert.vazio{cursor:default;opacity:.5;border-style:dashed}.cert.vazio:hover{transform:none;border-color:var(--line)}
 .sel-tag{font-size:11px;color:var(--bg);background:var(--accent);border-radius:4px;padding:1px 7px;font-weight:700}
 .secao{margin-top:30px}.secao h2{font-size:18px;margin:0 0 2px}.secao h2:before{content:'## ';color:var(--accent)}
@@ -24,7 +25,7 @@
   <div class="carrossel" id="car"></div>
   <div id="det"></div>
 </main>
-<script src="posts.js?v=202610131934"></script><script src="layout.js?v=202610131934"></script><script>
+<script src="posts.js?v=202610131940"></script><script src="layout.js?v=202610131940"></script><script>
 let TRILHAS = [];
 Promise.all([dados, fetch('data/trilhas.json', { cache: 'no-cache' }).then(r => r.json()).then(t => TRILHAS = t)]).then(() => {
   const byId = Object.fromEntries(visiveis.map(p => [p.id, p]));
@@ -32,10 +33,9 @@ Promise.all([dados, fetch('data/trilhas.json', { cache: 'no-cache' }).then(r => 
   let atual = qs.get('cert') || (TRILHAS[0] && TRILHAS[0].id);
   function render() {
     car.innerHTML = TRILHAS.map(tr => { const [c, n] = cobertos(tr); return `<button class="cert ${tr.id === atual ? 'on' : ''}" data-id="${tr.id}">
-      <div style="display:flex;justify-content:space-between;align-items:center"><span class="sig">${tr.sigla}</span>${tr.status === 'estudando' ? '<span class="sel-tag">ESTUDANDO</span>' : ''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="sig">${tr.sigla}</span>${tr.status === 'estudando' ? '<span class="sel-tag">ESTUDANDO</span>' : '<span class="sel-tag breve-tag">EM BREVE</span>'}</div>
       <b>${tr.nome}</b><span class="meta">Exame ${tr.exame}</span>
-      <div class="bar"><i style="width:${Math.round(c / n * 100)}%"></i></div><span class="meta">${c} de ${n} tópicos com artigo</span></button>`; }).join('')
-      + `<div class="cert vazio"><span class="sig" style="color:var(--muted)">+</span><b>Próximas trilhas</b><span class="meta">em breve</span></div>`;
+      <div class="bar"><i style="width:${Math.round(c / n * 100)}%"></i></div><span class="meta">${tr.status === 'em_breve' ? 'posts em breve' : c + ' de ' + n + ' tópicos com artigo'}</span></button>`; }).join('');
     car.querySelectorAll('[data-id]').forEach(b => b.onclick = () => { atual = b.dataset.id; history.replaceState(null, '', '?cert=' + atual + (location.search.includes('rascunhos') ? '&rascunhos' : '')); render(); });
     const tr = TRILHAS.find(t => t.id === atual); if (!tr) { det.innerHTML = ''; return; }
     const [c, n] = cobertos(tr);
