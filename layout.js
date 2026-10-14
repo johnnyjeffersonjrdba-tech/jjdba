@@ -12,3 +12,4 @@ document.body.insertAdjacentHTML('beforeend', `<footer><div class="wrap wide" st
 <span><a href="blog.html">posts</a> · <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">linkedin</a></span></div></footer>`);
 
 if (typeof mostrarVisitas === 'function') mostrarVisitas(document.getElementById('visitas-site'), 'TOTAL');
+
