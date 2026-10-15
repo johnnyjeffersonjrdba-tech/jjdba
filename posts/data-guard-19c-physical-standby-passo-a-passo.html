@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="Da experiência em projetos de Data Guard on-premises e na OCI para o laboratório: o passo a passo de uma physical standby 19c com RMAN DUPLICATE, ASM/OMF e Broker, validado na documentação oficial, com script de verificação e troubleshooting.">
 <meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/data-guard-19c-physical-standby-passo-a-passo.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker","description":"Da experiência em projetos de Data Guard on-premises e na OCI para o laboratório: o passo a passo de uma physical standby 19c com RMAN DUPLICATE, ASM/OMF e Broker, validado na documentação oficial, com script de verificação e troubleshooting.","datePublished":"2026-10-14","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/data-guard-19c-physical-standby-passo-a-passo.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/data-guard-19c-physical-standby-passo-a-passo.html","inLanguage":"pt-BR","keywords":"DATAGUARD, DBA, LINUX","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
-<link rel="stylesheet" href="style.css?v=202610142209"></head><body>
+<link rel="stylesheet" href="style.css?v=202610142233"></head><body>
 <main class="wrap"><article id="a" data-id="data-guard-19c-physical-standby-passo-a-passo" style="padding:32px 0"><span class="tag">Na prática</span><span class="meta">14 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker</h1><img class="capa-post" src="img/posts/capa-dg19c.svg" alt="Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker"><span class="chip">DATAGUARD</span><span class="chip">DBA</span><span class="chip">LINUX</span>
 <p>Durante muito tempo, Data Guard foi para mim um assunto mais de estudo do que de rotina. Isso mudou quando passei a atuar numa <strong>célula de projetos de DBA</strong>. Ali tive a oportunidade de trabalhar em várias frentes e de participar da implantação de ambientes de Data Guard <strong>do início ao fim</strong>, com standby <strong>on-premises</strong> e na <strong>OCI</strong>.</p>
 <p>Foi essa experiência que me motivou a escrever este artigo. Aqui está o passo a passo que uso para criar uma <strong>physical standby 19c</strong> com <strong>RMAN DUPLICATE FROM ACTIVE DATABASE</strong>, <strong>ASM com OMF</strong> e <strong>Data Guard Broker</strong>, pensado para <strong>treinar em laboratório</strong>. Cada etapa foi comparada com a documentação oficial da Oracle, e no caminho anotei os problemas que encontrei e como resolvi.</p>
@@ -99,8 +99,8 @@
 </tr>
 <tr>
 <td>Alias TNS</td>
-<td><code>CDBPRD_TNS</code></td>
-<td><code>CDBPRD_STBY_TNS</code></td>
+<td><code>CDBPRD</code></td>
+<td><code>CDBPRD_STBY</code></td>
 </tr>
 <tr>
 <td>Serviço estático do Broker</td>
@@ -203,12 +203,12 @@ md5sum $ORACLE_HOME/dbs/orapwcdbprd
 <li>Depois de editar, rode <code>lsnrctl reload</code>. As entradas estáticas aparecem com status <code>UNKNOWN</code>, e isso é normal.</li>
 </ul>
 <p><strong><code>tnsnames.ora</code> — idêntico nos dois servidores:</strong></p>
-<pre><code>CDBPRD_TNS =
+<pre><code>CDBPRD =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = srv-lab-ora-01)(PORT = 1521))
     (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CDBPRD)))
 
-CDBPRD_STBY_TNS =
+CDBPRD_STBY =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = srv-lab-ora-02)(PORT = 1521))
     (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CDBPRD_STBY)(UR = A)))
@@ -237,9 +237,9 @@ EOF
 <pre><code class="language-sql">STARTUP NOMOUNT
 </code></pre>
 <p>Antes do DUPLICATE, <strong>teste a conexão nos dois servidores</strong>:</p>
-<pre><code class="language-bash">tnsping CDBPRD_TNS
-tnsping CDBPRD_STBY_TNS
-rman target sys@CDBPRD_TNS auxiliary sys@CDBPRD_STBY_TNS
+<pre><code class="language-bash">tnsping CDBPRD
+tnsping CDBPRD_STBY
+rman target sys@CDBPRD auxiliary sys@CDBPRD_STBY
 </code></pre>
 <table>
 <thead>
@@ -269,10 +269,10 @@ rman target sys@CDBPRD_TNS auxiliary sys@CDBPRD_STBY_TNS
 <h2>6. Parâmetros de Data Guard no primário</h2>
 <pre><code class="language-sql">ALTER SYSTEM SET log_archive_config=&#39;DG_CONFIG=(cdbprd,cdbprd_stby)&#39; SCOPE=BOTH;
 ALTER SYSTEM SET log_archive_dest_1=&#39;LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME=cdbprd&#39; SCOPE=BOTH;
-ALTER SYSTEM SET log_archive_dest_2=&#39;SERVICE=CDBPRD_STBY_TNS ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=cdbprd_stby&#39; SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_dest_2=&#39;SERVICE=CDBPRD_STBY ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=cdbprd_stby&#39; SCOPE=BOTH;
 ALTER SYSTEM SET log_archive_dest_state_2=DEFER SCOPE=BOTH;
 ALTER SYSTEM SET standby_file_management=&#39;AUTO&#39; SCOPE=BOTH;
-ALTER SYSTEM SET fal_server=&#39;CDBPRD_STBY_TNS&#39; SCOPE=BOTH;
+ALTER SYSTEM SET fal_server=&#39;CDBPRD_STBY&#39; SCOPE=BOTH;
 SHOW PARAMETER remote_login_passwordfile
 </code></pre>
 <table>
@@ -307,7 +307,7 @@ SHOW PARAMETER remote_login_passwordfile
 <p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html">Redo Transport Services</a></p>
 <h2>7. Criar a standby com RMAN DUPLICATE (OMF)</h2>
 <p>Execute a partir da standby. Em outra janela, acompanhe o alert log dela.</p>
-<pre><code>rman target sys@CDBPRD_TNS auxiliary sys@CDBPRD_STBY_TNS
+<pre><code>rman target sys@CDBPRD auxiliary sys@CDBPRD_STBY
 
 run {
   allocate channel p1 type disk;
@@ -325,8 +325,8 @@ run {
       set audit_file_dest=&#39;/u01/app/oracle/admin/cdbprd/adump&#39;
       set log_archive_config=&#39;DG_CONFIG=(cdbprd,cdbprd_stby)&#39;
       set log_archive_dest_1=&#39;LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME=cdbprd_stby&#39;
-      set log_archive_dest_2=&#39;SERVICE=CDBPRD_TNS ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=cdbprd&#39;
-      set fal_server=&#39;CDBPRD_TNS&#39;
+      set log_archive_dest_2=&#39;SERVICE=CDBPRD ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=cdbprd&#39;
+      set fal_server=&#39;CDBPRD&#39;
       set standby_file_management=&#39;AUTO&#39;;
 }
 </code></pre>
@@ -556,4 +556,4 @@ SELECT name, ROUND(space_used/space_limit*100, 1) AS pct_usado FROM v$recovery_f
 <h2>Ficou com alguma dúvida?</h2>
 <p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
 </article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
-<script src="posts.js?v=202610142209"></script><script src="layout.js?v=202610142209"></script><script src="post.js"></script></body></html>
+<script src="posts.js?v=202610142233"></script><script src="layout.js?v=202610142233"></script><script src="post.js"></script></body></html>
