@@ -45,7 +45,9 @@
         "topicos": [
           {
             "t": "Starting Up Oracle Database Instances",
-            "posts": []
+            "posts": [
+              "startup-shutdown-oracle"
+            ]
           },
           {
             "t": "Using Data Dictionary Views",
@@ -53,7 +55,9 @@
           },
           {
             "t": "Shutting Down Oracle Database Instances",
-            "posts": []
+            "posts": [
+              "startup-shutdown-oracle"
+            ]
           },
           {
             "t": "Using Dynamic Performance Views",
