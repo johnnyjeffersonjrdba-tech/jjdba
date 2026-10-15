@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610142149">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610142159">
 <style>
 .carrossel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 14px}
 .carrossel::-webkit-scrollbar{height:6px}.carrossel::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
@@ -25,7 +25,7 @@
   <div class="carrossel" id="car"></div>
   <div id="det"></div>
 </main>
-<script src="posts.js?v=202610142149"></script><script src="layout.js?v=202610142149"></script><script>
+<script src="posts.js?v=202610142159"></script><script src="layout.js?v=202610142159"></script><script>
 let TRILHAS = [];
 Promise.all([dados, fetch('data/trilhas.json', { cache: 'no-cache' }).then(r => r.json()).then(t => TRILHAS = t)]).then(() => {
   const byId = Object.fromEntries(visiveis.map(p => [p.id, p]));
@@ -44,7 +44,7 @@ Promise.all([dados, fetch('data/trilhas.json', { cache: 'no-cache' }).then(r => 
       <div class="resumo-trilha"><span><b>${tr.secoes.length}</b> seções</span><span><b>${n}</b> tópicos oficiais</span><span><b>${c}</b> com artigo publicado</span><a href="${tr.oficial}" target="_blank" rel="noopener">página oficial do exame ↗</a></div></section>`
       + tr.secoes.map(s => `<section class="secao"><h2>${s.titulo}</h2><span class="curso">Oracle Database: ${s.curso}</span><ul class="topicos">${s.topicos.map(t => {
           const ps = t.posts.map(id => byId[id]).filter(Boolean);
-          return `<li><span class="t">${t.t}</span><span class="lk">${ps.length ? ps.map(p => `<a href="post.html?id=${p.id}" title="${p.titulo}">${p.parte ? 'Parte ' + p.parte : 'Artigo'}</a>`).join('') : '<span class="breve">em breve</span>'}</span></li>`; }).join('')}</ul></section>`).join('');
+          return `<li><span class="t">${t.t}</span><span class="lk">${ps.length ? ps.map(p => `<a href="${urlPost(p.id)}" title="${p.titulo}">${p.parte ? 'Parte ' + p.parte : 'Artigo'}</a>`).join('') : '<span class="breve">em breve</span>'}</span></li>`; }).join('')}</ul></section>`).join('');
   }
   render();
 });

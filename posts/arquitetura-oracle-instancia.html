@@ -1,0 +1,403 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>Arquitetura Oracle: instância, banco, memória e processos (1Z0-082 · Parte 1) · JJ DBA</title>
+<meta name="description" content="O que eu aprendi na primeira aula do 1Z0-082: instância × banco, CDB e PDB, SGA e PGA, AMM × ASMM, processos de background e conexões — com diagramas, laboratório e links para a documentação oficial do 19c.">
+<meta name="keywords" content="Oracle, DBA, DBA, CERTIFICAÇÃO">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/arquitetura-oracle-instancia.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Arquitetura Oracle: instância, banco, memória e processos (1Z0-082 · Parte 1)">
+<meta property="og:description" content="O que eu aprendi na primeira aula do 1Z0-082: instância × banco, CDB e PDB, SGA e PGA, AMM × ASMM, processos de background e conexões — com diagramas, laboratório e links para a documentação oficial do 19c.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/arquitetura-oracle-instancia.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/arquitetura-oracle-instancia.png">
+<meta property="article:published_time" content="2026-10-12">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arquitetura Oracle: instância, banco, memória e processos (1Z0-082 · Parte 1)">
+<meta name="twitter:description" content="O que eu aprendi na primeira aula do 1Z0-082: instância × banco, CDB e PDB, SGA e PGA, AMM × ASMM, processos de background e conexões — com diagramas, laboratório e links para a documentação oficial do 19c.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/arquitetura-oracle-instancia.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Arquitetura Oracle: instância, banco, memória e processos (1Z0-082 · Parte 1)","description":"O que eu aprendi na primeira aula do 1Z0-082: instância × banco, CDB e PDB, SGA e PGA, AMM × ASMM, processos de background e conexões — com diagramas, laboratório e links para a documentação oficial do 19c.","datePublished":"2026-10-12","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/arquitetura-oracle-instancia.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/arquitetura-oracle-instancia.html","inLanguage":"pt-BR","keywords":"DBA, CERTIFICAÇÃO","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css?v=202610142159"></head><body>
+<main class="wrap"><article id="a" data-id="arquitetura-oracle-instancia" style="padding:32px 0"><span class="tag">Estudo</span><span class="meta">12 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>Arquitetura Oracle: instância, banco, memória e processos (1Z0-082 · Parte 1)</h1><img class="capa-post" src="img/posts/capa-1z0-082-parte-1.svg" alt="Arquitetura Oracle: instância, banco, memória e processos (1Z0-082 · Parte 1)"><span class="chip">DBA</span><span class="chip">CERTIFICAÇÃO</span>
+<p>Comecei a estudar para a certificação <strong>Oracle Database Administration I (1Z0-082)</strong>, com prova marcada para 18/11/2026. Decidi voltar à base e entender o <strong>porquê</strong> das coisas, não só o &quot;como faz&quot;. Este é o primeiro artigo do <strong>Guia 1Z0-082</strong>: vou publicar aqui, toda semana, o que estudei, do jeito que eu gostaria de ter encontrado quando comecei.</p>
+<p>O assunto de hoje é a fundação de tudo: <strong>arquitetura do Oracle Database</strong>. Instância, banco, memória, processos e conexões.</p>
+<blockquote>
+<p>Cada afirmação técnica deste artigo foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>. Os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>1. Instância × banco de dados</h2>
+<p class="topico-exame">Understanding Oracle Database Instance Configurations</p>
+
+<p>No dia a dia a gente fala &quot;o banco&quot; para tudo, mas a Oracle separa duas coisas bem diferentes:</p>
+<p>👉 <strong>Instância:</strong> o que está vivo na <strong>memória</strong>. É a <strong>SGA</strong> mais os <strong>processos de background</strong>.</p>
+<p>👉 <strong>Banco de dados:</strong> o conjunto de <strong>arquivos em disco</strong>. São os <strong>datafiles, tempfiles, control files e online redo log files</strong>.</p>
+<p>Como uma vive na memória e o outro no disco, dá para ter a <strong>instância sem banco</strong> (no estágio <code>NOMOUNT</code>) e o <strong>banco sem instância</strong> (tudo desligado, os arquivos continuam lá).</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Instância</th>
+<th>Banco de dados</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>O que é</td>
+<td>SGA + processos de background</td>
+<td>Datafiles, tempfiles, control files, online redo logs</td>
+</tr>
+<tr>
+<td>Onde vive</td>
+<td>Memória do servidor</td>
+<td>Disco (sistema de arquivos ou ASM)</td>
+</tr>
+<tr>
+<td>Como identifico</td>
+<td><code>INSTANCE_NAME</code> (o SID)</td>
+<td><code>DB_NAME</code> e DBID</td>
+</tr>
+<tr>
+<td>Onde consulto</td>
+<td><code>V$INSTANCE</code></td>
+<td><code>V$DATABASE</code></td>
+</tr>
+</tbody></table>
+<p><strong>Cardinalidade entre instância e banco:</strong></p>
+<ul>
+<li><strong>Single-instance:</strong> relação 1:1 entre banco e instância.</li>
+<li><strong>RAC:</strong> relação 1:N, ou seja, várias instâncias abrem o mesmo banco.</li>
+<li><strong>Em qualquer configuração:</strong> uma instância se associa a <strong>um único banco por vez</strong>.</li>
+</ul>
+<p><strong>O que acontece no <code>STARTUP</code>:</strong></p>
+<ol>
+<li><strong>NOMOUNT:</strong> procura o spfile (e, se não achar, o pfile), aloca a SGA, sobe os processos de background e abre o alert log. Ainda não há banco associado.</li>
+<li><strong>MOUNT:</strong> lê o <strong>control file</strong> e passa a saber onde estão os arquivos do banco.</li>
+<li><strong>OPEN:</strong> abre os datafiles e os online redo logs. A partir daqui o usuário entra.</li>
+</ol>
+<p>Um detalhe importante: a instância só monta, abre e fecha o banco <strong>uma vez</strong>. Depois que o banco é fechado, é preciso iniciar uma <strong>nova instância</strong> (<code>SHUTDOWN</code> + <code>STARTUP</code>) para abri-lo de novo.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/physical-storage-structures.html">Physical Storage Structures</a></p>
+<h2>2. Multitenant: CDB e PDB</h2>
+<p class="topico-exame">Understanding Oracle Database Instance Configurations</p>
+
+<p>No 19c, o normal é trabalhar com <strong>CDB</strong> (container database). Um CDB tem:</p>
+<ul>
+<li>exatamente <strong>um</strong> <code>CDB$ROOT</code>;</li>
+<li>exatamente <strong>uma</strong> <code>PDB$SEED</code>, o modelo usado para criar novas PDBs (não dá para criar nem alterar objetos nela);</li>
+<li><strong>zero ou mais PDBs</strong>, que são os bancos &quot;de verdade&quot; das aplicações.</li>
+</ul>
+<p>O ponto principal: <strong>todas as PDBs dividem a mesma instância</strong>, ou seja, a mesma SGA e os mesmos processos de background. O CDB tem <strong>um</strong> control file e <strong>um</strong> online redo log. Cada PDB tem as suas próprias tablespaces <strong>SYSTEM e SYSAUX</strong> e o seu próprio <strong>dicionário de dados</strong>. A undo depende do modo:</p>
+<ul>
+<li><strong>Local undo:</strong> cada PDB tem a sua tablespace de undo.</li>
+<li><strong>Shared undo:</strong> existe uma só undo ativa para o CDB inteiro.</li>
+</ul>
+<p><img src="img/posts/1z0-082-p1-cdb-pdb.svg" alt="CDB: uma instância, vários containers"></p>
+<p><strong>CON_ID</strong>, que aparece em todas as visões V$:</p>
+<table>
+<thead>
+<tr>
+<th>CON_ID</th>
+<th>Significa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>O CDB inteiro (ou um non-CDB)</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>CDB$ROOT</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>PDB$SEED</code></td>
+</tr>
+<tr>
+<td>3 em diante</td>
+<td>PDBs criadas pelo usuário, application roots e application seeds</td>
+</tr>
+</tbody></table>
+<p><strong>Usuários:</strong></p>
+<ul>
+<li>O <strong>comum</strong> é criado no root e precisa começar com o prefixo do <code>COMMON_USER_PREFIX</code> (por padrão, <code>C##</code>).</li>
+<li>O <strong>local</strong> existe só dentro da sua PDB e <strong>não pode</strong> começar com <code>C##</code>.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/overview-of-the-multitenant-architecture.html">Overview of the Multitenant Architecture</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/introduction-to-the-multitenant-architecture.html">Introduction to the Multitenant Architecture</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html">CREATE USER</a></p>
+<h2>3. SGA: a memória compartilhada</h2>
+<p class="topico-exame">Understanding Oracle Database Memory and Process Structures</p>
+
+<p>A <strong>SGA</strong> é a memória compartilhada por todos os processos da instância. Ela é dividida assim:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>O que guarda</th>
+<th>Atenção</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Database buffer cache</strong></td>
+<td>Cópias dos blocos de dados lidos dos datafiles</td>
+<td>Detalhes na seção 4</td>
+</tr>
+<tr>
+<td><strong>Redo log buffer</strong></td>
+<td>Redo entries (a descrição de cada mudança)</td>
+<td>Quem grava em disco é o <strong>LGWR</strong></td>
+</tr>
+<tr>
+<td><strong>Shared pool</strong></td>
+<td>Library cache, data dictionary cache e <strong>server result cache</strong></td>
+<td>O result cache fica <strong>dentro</strong> da shared pool</td>
+</tr>
+<tr>
+<td><strong>Large pool</strong></td>
+<td>UGA em shared server, buffers de parallel execution e do RMAN</td>
+<td>Opcional e <strong>sem lista LRU</strong></td>
+</tr>
+<tr>
+<td><strong>Java pool / Streams pool</strong></td>
+<td>Código e dados Java de sessão na JVM / GoldenGate, XStream, Advanced Queuing e Data Pump</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Fixed SGA</strong></td>
+<td>Área interna de controle</td>
+<td>O tamanho é definido pelo Oracle e não pode ser alterado</td>
+</tr>
+<tr>
+<td><strong>In-Memory Area</strong></td>
+<td>IM column store</td>
+<td>Opcional; exige a opção Database In-Memory</td>
+</tr>
+</tbody></table>
+<p>A <strong>library cache</strong> guarda o plano de execução de cada SQL:</p>
+<ul>
+<li>Se o SQL já está lá, é um <strong>soft parse</strong> (reaproveita o que existe).</li>
+<li>Se não está, é um <strong>hard parse</strong>, caro em CPU.</li>
+</ul>
+<p>Na prática, é por isso que se insiste tanto em <em>bind variables</em>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html">Memory Architecture</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/STREAMS_POOL_SIZE.html">STREAMS_POOL_SIZE</a></p>
+<h2>4. Buffer cache por dentro</h2>
+<p class="topico-exame">Understanding Oracle Database Memory and Process Structures</p>
+
+<p>Cada buffer está em um destes estados:</p>
+<ul>
+<li><strong>unused:</strong> disponível, nunca foi usado ou está livre;</li>
+<li><strong>clean:</strong> já foi usado, mas não precisa ser gravado antes de ser reaproveitado;</li>
+<li><strong>dirty:</strong> foi alterado e <strong>ainda não foi gravado</strong> em disco.</li>
+</ul>
+<p>E existe o <strong>pinned</strong>, que é outra coisa: o buffer fica &quot;preso&quot; enquanto uma sessão o acessa, para não sair da memória naquele instante.</p>
+<p>O buffer cache pode ter pools extras:</p>
+<ul>
+<li><strong>KEEP:</strong> para blocos muito acessados que eu quero manter em memória.</li>
+<li><strong>RECYCLE:</strong> para blocos pouco usados, que não devem expulsar os outros.</li>
+</ul>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html">Memory Architecture</a></p>
+<h2>5. PGA e UGA</h2>
+<p class="topico-exame">Understanding Oracle Database Memory and Process Structures</p>
+
+<p>A diferença entre SGA e PGA, de forma direta:</p>
+<p>👉 A <strong>PGA</strong> é a memória <strong>privada</strong> de cada processo e <strong>nunca</strong> fica na SGA. É nela que ficam a <em>private SQL area</em> e as <strong>work areas</strong>, que é onde rodam o sort de um <code>ORDER BY</code> e o hash join. Se os dados não cabem na work area, o Oracle usa o disco temporário. Fica mais lento, mas não dá erro.</p>
+<p>👉 A <strong>UGA</strong> é a memória da <strong>sessão</strong>. Onde ela fica depende do tipo de conexão:</p>
+<ul>
+<li><strong>Dedicated server:</strong> dentro da PGA.</li>
+<li><strong>Shared server:</strong> dentro da SGA, porque qualquer shared server pode atender a próxima chamada da sessão.</li>
+</ul>
+<p>Outro ponto que confunde: o <code>PGA_AGGREGATE_TARGET</code> é um <strong>alvo</strong>, e o consumo pode passar dele. O <strong>limite</strong> rígido é o <code>PGA_AGGREGATE_LIMIT</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html">Memory Architecture</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/PGA_AGGREGATE_TARGET.html">PGA_AGGREGATE_TARGET</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/PGA_AGGREGATE_LIMIT.html">PGA_AGGREGATE_LIMIT</a></p>
+<h2>6. AMM × ASMM × manual</h2>
+<p class="topico-exame">Understanding Oracle Database Memory and Process Structures</p>
+
+<p>São três formas de dizer ao Oracle quanta memória usar:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>AMM</th>
+<th>ASMM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Parâmetro</td>
+<td><code>MEMORY_TARGET</code>: SGA <strong>+</strong> PGA</td>
+<td><code>SGA_TARGET</code>: só a SGA</td>
+</tr>
+<tr>
+<td>O Oracle distribui</td>
+<td>Entre SGA e PGA</td>
+<td>Entre os pools da SGA</td>
+</tr>
+<tr>
+<td>Teto</td>
+<td><code>MEMORY_MAX_TARGET</code></td>
+<td><code>SGA_MAX_SIZE</code></td>
+</tr>
+<tr>
+<td>Sempre manual</td>
+<td><code>LOG_BUFFER</code>, KEEP, RECYCLE, caches de bloco não padrão (<code>DB_nK_CACHE_SIZE</code>)</td>
+<td>O mesmo</td>
+</tr>
+</tbody></table>
+<p>Dois pontos importantes para a prática:</p>
+<ul>
+<li>Com <code>SGA_TARGET</code> ligado, se eu definir também <code>SHARED_POOL_SIZE</code>, esse valor vira o <strong>tamanho mínimo</strong> da shared pool, e não um tamanho fixo.</li>
+<li><strong>No Linux, AMM e HugePages não são compatíveis.</strong> Para usar HugePages é preciso desativar o AMM. Por isso, em servidores Linux que usam HugePages, a configuração é ASMM (<code>SGA_TARGET</code>) e não AMM.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-memory.html">Managing Memory</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/MEMORY_TARGET.html">MEMORY_TARGET</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html">Administering Oracle Database on Linux</a></p>
+<h2>7. Principais processos de background</h2>
+<p class="topico-exame">Understanding Oracle Database Memory and Process Structures</p>
+
+<p>O Oracle tem dezenas de processos de background — a lista completa está na <em>Database Reference</em>. Abaixo estão os principais para entender a arquitetura:</p>
+<table>
+<thead>
+<tr>
+<th>Processo</th>
+<th>O que faz</th>
+<th>Pegadinha</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DBWn</strong></td>
+<td>Grava os dirty buffers nos datafiles</td>
+<td><strong>Não</strong> grava no COMMIT</td>
+</tr>
+<tr>
+<td><strong>LGWR</strong></td>
+<td>Grava o redo log buffer no online redo log</td>
+<td>Grava no COMMIT, no log switch, a cada 3 segundos, com o buffer 1/3 cheio ou com 1 MB, e antes de o DBWn gravar</td>
+</tr>
+<tr>
+<td><strong>CKPT</strong></td>
+<td>Atualiza o control file e os cabeçalhos dos datafiles e sinaliza o DBWn</td>
+<td><strong>Não</strong> grava blocos</td>
+</tr>
+<tr>
+<td><strong>SMON</strong></td>
+<td>Faz o instance recovery no startup, se necessário</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>PMON</strong></td>
+<td>Detecta processos que terminaram; o grupo PMON (CLMN e CLnn) faz a limpeza</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>LREG</strong></td>
+<td>Registra a instância e os serviços no listener</td>
+<td>No 19c isso é do <strong>LREG</strong>, não do PMON</td>
+</tr>
+<tr>
+<td><strong>ARCn</strong></td>
+<td>Arquiva o online redo log</td>
+<td>Só existe em ARCHIVELOG com arquivamento automático</td>
+</tr>
+</tbody></table>
+<p>O ponto central desta seção: <strong>no COMMIT, quem grava em disco é o LGWR</strong>, gravando o redo. O bloco alterado pode continuar só na memória, e o DBWn grava depois. O COMMIT não &quot;salva a tabela&quot;: ele garante o redo em disco. É isso que permite ao Oracle ser rápido sem perder dado.</p>
+<p><img src="img/posts/1z0-082-p1-commit.svg" alt="O que acontece num UPDATE + COMMIT"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html">Process Architecture</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/background-processes.html">Background Processes</a></p>
+<h2>8. Conexão × sessão; dedicated × shared server</h2>
+<p class="topico-exame">Comparing Dedicated and Shared Server Configurations</p>
+
+<ul>
+<li><strong>Conexão:</strong> o caminho físico entre o cliente e a instância.</li>
+<li><strong>Sessão:</strong> o login lógico do usuário, que existe na memória da instância.</li>
+<li><strong>Uma conexão pode ter 0, 1 ou várias sessões.</strong></li>
+</ul>
+<p>O cliente pede a conexão ao <strong>listener</strong>, que a repassa para um handler. Depois disso, o listener <strong>sai da conversa</strong>. Quem conta ao listener quais serviços existem é o <strong>LREG</strong>, por <em>service registration</em>, sem precisar configurar nada no <code>listener.ora</code>.</p>
+<p>👉 <strong>Dedicated server:</strong> cada cliente ganha o seu próprio server process (relação 1:1).</p>
+<p>👉 <strong>Shared server:</strong></p>
+<ul>
+<li>um <strong>dispatcher</strong> recebe os pedidos de vários clientes e coloca na <strong>request queue</strong>, que fica na SGA e é <strong>comum a todos os dispatchers</strong> da instância;</li>
+<li>um shared server livre executa o pedido e devolve a resposta na <strong>response queue</strong>, que é própria de cada dispatcher.</li>
+</ul>
+<p>Atenção: <strong>iniciar ou parar a instância e fazer media recovery não funcionam por um dispatcher</strong>. Para isso, a conexão tem que ser dedicated.</p>
+<p><img src="img/posts/1z0-082-p1-dedicated-shared.svg" alt="Dedicated server × shared server"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/application-and-networking-architecture.html">Application and Networking Architecture</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-processes.html">Managing Processes</a></p>
+<h2>Laboratório: para você fazer no seu 19c</h2>
+<p>Conecte como <code>sqlplus / as sysdba</code> (no <code>CDB$ROOT</code>, se o seu banco for CDB). Cada bloco tem um botão <strong>Copiar</strong>: é só colar no SQL*Plus.</p>
+<p><strong>Passo 1 — A instância.</strong> <code>STATUS</code> mostra STARTED (nomount), MOUNTED ou OPEN.</p>
+<pre><code class="language-sql">SELECT instance_name, host_name, version_full, status, startup_time
+FROM   v$instance;
+</code></pre>
+<p><strong>Passo 2 — O banco.</strong> <code>CDB = YES</code> em container database; <code>CON_ID = 0</code> indica o CDB inteiro.</p>
+<pre><code class="language-sql">SELECT name, dbid, cdb, con_id, open_mode, log_mode
+FROM   v$database;
+</code></pre>
+<p><strong>Passo 3 — Os containers.</strong> 2 = <code>PDB$SEED</code>; 3 em diante = suas PDBs.</p>
+<pre><code class="language-sql">SHOW CON_NAME
+SHOW PDBS
+</code></pre>
+<p><strong>Passo 4 — Qual gerenciamento de memória?</strong> <code>memory_target = 0</code> e <code>sga_target &gt; 0</code> = ASMM.</p>
+<pre><code class="language-sql">SHOW PARAMETER memory_target
+SHOW PARAMETER sga_target
+SHOW PARAMETER pga_aggregate
+</code></pre>
+<p><strong>Passo 5 — A SGA em itens.</strong></p>
+<pre><code class="language-sql">SELECT name, ROUND(bytes/1024/1024) AS mb, resizeable
+FROM   v$sgainfo
+ORDER  BY bytes DESC;
+</code></pre>
+<p><strong>Passo 6 — Os processos de background e a PGA de cada um.</strong></p>
+<pre><code class="language-sql">SELECT pname, spid, ROUND(pga_alloc_mem/1024/1024, 1) AS pga_mb
+FROM   v$process
+WHERE  background = 1
+ORDER  BY pname;
+</code></pre>
+<p>O que observar:</p>
+<ul>
+<li><code>INSTANCE_NAME</code> (passo 1) e <code>NAME</code> (passo 2) são nomes de coisas diferentes.</li>
+<li>No passo 6 aparecem DBW0, LGWR, CKPT, SMON, PMON, LREG… e o ARC só aparece se o banco estiver em ARCHIVELOG.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE.html">V$INSTANCE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATABASE.html">V$DATABASE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SGAINFO.html">V$SGAINFO</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-PROCESS.html">V$PROCESS</a></p>
+<h2>Pontos de atenção que encontrei nos simulados</h2>
+<ul>
+<li>Uma instância se associa a <strong>um único banco</strong> por vez; no RAC são <strong>várias instâncias para um banco</strong>.</li>
+<li>Tempfile <strong>faz parte</strong> do banco, mas não aparece em <code>V$DATAFILE</code>: ele aparece em <code>V$TEMPFILE</code>.</li>
+<li>O server result cache fica <strong>dentro</strong> da shared pool, não é um pool separado.</li>
+<li>A large pool <strong>não</strong> tem lista LRU.</li>
+<li><strong>Dirty</strong> quer dizer &quot;alterado e não gravado&quot;, e não &quot;não comitado&quot;.</li>
+<li>A PGA <strong>nunca</strong> fica na SGA. O que vai para a SGA em shared server é a <strong>UGA</strong>.</li>
+<li>No 19c, quem registra no listener é o <strong>LREG</strong>.</li>
+<li>STARTUP, SHUTDOWN e media recovery <strong>não</strong> funcionam por um dispatcher.</li>
+</ul>
+<h2>Resumo em 5 linhas</h2>
+<ol>
+<li><strong>Instância</strong> é memória (SGA) mais processos. <strong>Banco</strong> são datafiles, tempfiles, control files e online redo logs.</li>
+<li><strong>PDBs</strong> dividem a mesma instância, mas cada uma tem SYSTEM, SYSAUX e dicionário próprios.</li>
+<li>A <strong>SGA</strong> é compartilhada; a <strong>PGA</strong> é privada e nunca fica na SGA.</li>
+<li>No <strong>COMMIT</strong> grava o <strong>LGWR</strong> (redo); o <strong>DBWn</strong> grava o bloco depois.</li>
+<li><strong>Conexão ≠ sessão</strong>, e tarefas como STARTUP e SHUTDOWN exigem <strong>dedicated server</strong>.</li>
+</ol>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Database Concepts</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/physical-storage-structures.html">Physical Storage Structures</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html">Memory Architecture</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html">Process Architecture</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/application-and-networking-architecture.html">Application and Networking Architecture</a></li>
+</ul>
+<p><strong>Multitenant Administrator&#39;s Guide</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/introduction-to-the-multitenant-architecture.html">Introduction to the Multitenant Architecture</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/overview-of-the-multitenant-architecture.html">Overview of the Multitenant Architecture</a></li>
+</ul>
+<p><strong>Administrator&#39;s Guide e Linux</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-memory.html">Managing Memory</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-processes.html">Managing Processes</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html">Administering Oracle Database on Linux</a></li>
+</ul>
+<p><strong>Database Reference e SQL</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/background-processes.html">Background Processes</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/STREAMS_POOL_SIZE.html">STREAMS_POOL_SIZE</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/MEMORY_TARGET.html">MEMORY_TARGET</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/PGA_AGGREGATE_TARGET.html">PGA_AGGREGATE_TARGET</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/PGA_AGGREGATE_LIMIT.html">PGA_AGGREGATE_LIMIT</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE.html">V$INSTANCE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATABASE.html">V$DATABASE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SGAINFO.html">V$SGAINFO</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-PROCESS.html">V$PROCESS</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html">CREATE USER</a></li>
+</ul>
+<hr>
+<h2>Próximo artigo</h2>
+<p>Na <strong>Parte 2</strong> do Guia 1Z0-082, o assunto é como o Oracle organiza os dados: as <strong>estruturas lógicas</strong> (tablespaces, segmentos, extents e blocos) e as <strong>estruturas físicas</strong> (datafiles, control files e online redo logs), e como uma se liga à outra.</p>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js?v=202610142159"></script><script src="layout.js?v=202610142159"></script><script src="post.js"></script></body></html>

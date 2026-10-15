@@ -19,7 +19,9 @@ const dados = Promise.all(['data/posts.json', 'data/certs.json'].map(u => fetch(
 
 // Cartão de post (imagem + temas + título + data + resumo). Sem capa, gera uma automática.
 const capaAuto = p => `<div class="capa auto"><span class="sm">${p.tipo === 'pratica' ? '~/na-pratica' : '~/estudos'}</span><b>${p.titulo}</b><span class="sm">$ jj_dba</span></div>`;
-const cardPost = p => `<a class="pcard" href="post.html?id=${encodeURIComponent(p.id)}">
+// Endereço do post: página estática gerada na publicação (posts/<id>.html).
+const urlPost = id => 'posts/' + encodeURIComponent(id) + '.html';
+const cardPost = p => `<a class="pcard" href="${urlPost(p.id)}">
   <div class="pimg">${p.capa ? `<img src="${p.capa}" alt="" loading="lazy">` : capaAuto(p)}<span class="ptemas">${p.temas.slice(0, 2).join(', ')}</span></div>
   <div class="ptxt"><h3>${p.titulo}</h3><span class="meta">${fmt(p.data)}${p.rascunho ? ' · <b style="color:#ffb02e">RASCUNHO</b>' : ''}</span><p>${p.resumo}</p></div></a>`;
 
@@ -27,6 +29,8 @@ const cardPost = p => `<a class="pcard" href="post.html?id=${encodeURIComponent(
 const GOATCOUNTER = 'jjdba';   // código do site em goatcounter.com
 const gcPath = () => {
   const id = new URLSearchParams(location.search).get('id');
+  const est = location.pathname.match(/\/posts\/([^/]+)\.html$/);
+  if (est) return '/post/' + decodeURIComponent(est[1]);
   return location.pathname.endsWith('post.html') && id ? '/post/' + id : (location.pathname.replace(/^\/jjdba/, '').replace(/index\.html$/, '') || '/');
 };
 const contarAqui = location.hostname.endsWith('github.io');   // não conta acessos do seu computador

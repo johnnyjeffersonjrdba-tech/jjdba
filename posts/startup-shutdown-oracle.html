@@ -1,0 +1,372 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>STARTUP e SHUTDOWN no Oracle: estágios, modos e PDBs (1Z0-082 · Parte 3) · JJ DBA</title>
+<meta name="description" content="NOMOUNT, MOUNT e OPEN; os quatro modos de SHUTDOWN lado a lado; modo restrito; STARTUP de um CDB com PDBs e SAVE STATE; SYSDBA × SYSOPER — com diagramas, laboratório e a documentação oficial do 19c.">
+<meta name="keywords" content="Oracle, DBA, DBA, CERTIFICAÇÃO">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/startup-shutdown-oracle.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="STARTUP e SHUTDOWN no Oracle: estágios, modos e PDBs (1Z0-082 · Parte 3)">
+<meta property="og:description" content="NOMOUNT, MOUNT e OPEN; os quatro modos de SHUTDOWN lado a lado; modo restrito; STARTUP de um CDB com PDBs e SAVE STATE; SYSDBA × SYSOPER — com diagramas, laboratório e a documentação oficial do 19c.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/startup-shutdown-oracle.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/startup-shutdown-oracle.png">
+<meta property="article:published_time" content="2026-10-14">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="STARTUP e SHUTDOWN no Oracle: estágios, modos e PDBs (1Z0-082 · Parte 3)">
+<meta name="twitter:description" content="NOMOUNT, MOUNT e OPEN; os quatro modos de SHUTDOWN lado a lado; modo restrito; STARTUP de um CDB com PDBs e SAVE STATE; SYSDBA × SYSOPER — com diagramas, laboratório e a documentação oficial do 19c.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/startup-shutdown-oracle.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"STARTUP e SHUTDOWN no Oracle: estágios, modos e PDBs (1Z0-082 · Parte 3)","description":"NOMOUNT, MOUNT e OPEN; os quatro modos de SHUTDOWN lado a lado; modo restrito; STARTUP de um CDB com PDBs e SAVE STATE; SYSDBA × SYSOPER — com diagramas, laboratório e a documentação oficial do 19c.","datePublished":"2026-10-14","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/startup-shutdown-oracle.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/startup-shutdown-oracle.html","inLanguage":"pt-BR","keywords":"DBA, CERTIFICAÇÃO","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css?v=202610142159"></head><body>
+<main class="wrap"><article id="a" data-id="startup-shutdown-oracle" style="padding:32px 0"><span class="tag">Estudo</span><span class="meta">14 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>STARTUP e SHUTDOWN no Oracle: estágios, modos e PDBs (1Z0-082 · Parte 3)</h1><img class="capa-post" src="img/posts/capa-1z0-082-parte-3.svg" alt="STARTUP e SHUTDOWN no Oracle: estágios, modos e PDBs (1Z0-082 · Parte 3)"><span class="chip">DBA</span><span class="chip">CERTIFICAÇÃO</span>
+<p>Terceira parte do <strong>Guia 1Z0-082</strong>. Nas partes <a href="post.html?id=arquitetura-oracle-instancia">1</a> e <a href="post.html?id=armazenamento-oracle-logico-fisico">2</a> vimos o que é a instância e onde os dados ficam. Agora o assunto é <strong>ligar e desligar o banco</strong>: o que acontece em cada estágio do <code>STARTUP</code>, a diferença real entre os quatro modos de <code>SHUTDOWN</code> e como isso funciona num CDB com PDBs.</p>
+<blockquote>
+<p>Cada afirmação técnica deste artigo foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>. Os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>1. Os três estágios do STARTUP</h2>
+<p class="topico-exame">Starting Up Oracle Database Instances</p>
+
+<p>Subir um banco não é um evento único: são <strong>três estágios em sequência</strong>, e cada um abre uma camada a mais.</p>
+<p><img src="img/posts/1z0-082-p3-startup.svg" alt="Estágios do STARTUP: NOMOUNT, MOUNT e OPEN"></p>
+<table>
+<thead>
+<tr>
+<th>Estágio</th>
+<th>O que lê / abre</th>
+<th><code>V$INSTANCE.STATUS</code></th>
+<th>Uso típico</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>NOMOUNT</strong></td>
+<td>Parameter file (spfile ou pfile); aloca a SGA, sobe os processos, abre o alert log</td>
+<td><code>STARTED</code></td>
+<td>Criar o banco, recriar o control file</td>
+</tr>
+<tr>
+<td><strong>MOUNT</strong></td>
+<td><strong>Control files</strong> → descobre datafiles e redo logs, sem abri-los</td>
+<td><code>MOUNTED</code></td>
+<td>Ligar/desligar ARCHIVELOG, recovery completo do banco</td>
+</tr>
+<tr>
+<td><strong>OPEN</strong></td>
+<td><strong>Datafiles e online redo logs</strong>; faz instance recovery se preciso</td>
+<td><code>OPEN</code></td>
+<td>Operação normal</td>
+</tr>
+</tbody></table>
+<ul>
+<li><code>STARTUP</code> sem opção é o mesmo que <code>STARTUP OPEN</code>: faz os três estágios de uma vez.</li>
+<li>O SQL*Plus conta a história nas mensagens: <code>ORACLE instance started.</code> → <code>Database mounted.</code> → <code>Database opened.</code></li>
+</ul>
+<p>Um detalhe importante: a instância monta, abre e fecha o banco <strong>uma única vez</strong>. Depois de fechado, é preciso uma <strong>nova instância</strong> (<code>SHUTDOWN</code> + <code>STARTUP</code>) para abrir de novo.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE.html">V$INSTANCE</a></p>
+<h2>2. O que responde em cada estágio</h2>
+<p class="topico-exame">Starting Up Oracle Database Instances</p>
+
+<p>A regra da documentação é simples:</p>
+<ul>
+<li><strong>Instância iniciada (NOMOUNT):</strong> funcionam as visões <code>V$</code> que leem da <strong>memória</strong>, como <code>V$INSTANCE</code>, <code>V$SGA</code> e <code>V$PARAMETER</code>.</li>
+<li><strong>Banco montado (MOUNT):</strong> passam a funcionar as que leem do <strong>disco</strong>, como <code>V$DATABASE</code> e <code>V$DATAFILE</code>, que vêm do control file.</li>
+<li><strong>Banco aberto (OPEN):</strong> só aqui funciona o <strong>dicionário de dados</strong> (<code>DBA_</code>, <code>ALL_</code>, <code>USER_</code>), porque ele fica na tablespace SYSTEM, dentro de um datafile.</li>
+</ul>
+<p>Na prática, consultar <code>V$DATABASE</code> em NOMOUNT dá <em>database not mounted</em>, e consultar <code>DBA_TABLESPACES</code> em MOUNT dá <em>database not open</em>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html">About Dynamic Performance Views</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a></p>
+<h2>3. As opções do STARTUP</h2>
+<p class="topico-exame">Starting Up Oracle Database Instances</p>
+
+<table>
+<thead>
+<tr>
+<th>Comando</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>STARTUP</code></td>
+<td>Sobe até OPEN (READ WRITE)</td>
+</tr>
+<tr>
+<td><code>STARTUP NOMOUNT</code></td>
+<td>Para em NOMOUNT. Não combina com MOUNT nem OPEN</td>
+</tr>
+<tr>
+<td><code>STARTUP MOUNT</code></td>
+<td>Para em MOUNT; depois, <code>ALTER DATABASE OPEN</code></td>
+</tr>
+<tr>
+<td><code>STARTUP OPEN READ ONLY</code></td>
+<td>Abre só para leitura</td>
+</tr>
+<tr>
+<td><code>STARTUP RESTRICT</code></td>
+<td>Só entra quem tem o privilégio <code>RESTRICTED SESSION</code></td>
+</tr>
+<tr>
+<td><code>STARTUP FORCE</code></td>
+<td>Se a instância está no ar, faz <strong>SHUTDOWN ABORT</strong> e sobe de novo</td>
+</tr>
+<tr>
+<td><code>STARTUP PFILE=arquivo</code></td>
+<td>Usa um parameter file texto do cliente</td>
+</tr>
+</tbody></table>
+<p>Sobre o <strong>PFILE</strong>: sem essa opção, o servidor procura primeiro o <strong>spfile</strong> padrão e, se não achar, o pfile padrão.</p>
+<p>Sobre o <strong>FORCE</strong>: a documentação o recomenda só em situações anormais, quando os outros modos de shutdown não funcionam ou a instância tem problema para subir. No alert log aparece <code>Shutting down instance (abort)</code> seguido de <code>Starting ORACLE instance (normal)</code>.</p>
+<p>Com a instância no ar, avança-se de estágio com <code>ALTER DATABASE MOUNT</code> e <code>ALTER DATABASE OPEN</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/STARTUP.html">SQL*Plus — STARTUP</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-DATABASE.html">ALTER DATABASE</a></p>
+<h2>4. Os quatro modos de SHUTDOWN</h2>
+<p class="topico-exame">Shutting Down Oracle Database Instances</p>
+
+<p>O ponto de partida: <strong>nenhum modo aceita novas conexões</strong>, nem o NORMAL. O que muda é quanto o Oracle espera e se ele fecha tudo de forma consistente.</p>
+<p><img src="img/posts/1z0-082-p3-shutdown.svg" alt="Comparação dos quatro modos de SHUTDOWN"></p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Espera usuários saírem</th>
+<th>Espera transações</th>
+<th>Transações ativas</th>
+<th>Instance recovery depois</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>NORMAL</strong> (padrão)</td>
+<td>Sim</td>
+<td>Sim</td>
+<td>Os próprios usuários encerram</td>
+<td>Não</td>
+</tr>
+<tr>
+<td><strong>TRANSACTIONAL</strong></td>
+<td>Não</td>
+<td>Sim</td>
+<td>Terminam; depois os clientes são desconectados</td>
+<td>Não</td>
+</tr>
+<tr>
+<td><strong>IMMEDIATE</strong></td>
+<td>Não</td>
+<td>Não</td>
+<td><strong>Rollback</strong> automático</td>
+<td>Não</td>
+</tr>
+<tr>
+<td><strong>ABORT</strong></td>
+<td>Não</td>
+<td>Não</td>
+<td><strong>Sem rollback</strong></td>
+<td><strong>Sim</strong> (automática)</td>
+</tr>
+</tbody></table>
+<p>O que cada um significa na prática:</p>
+<ul>
+<li><strong>NORMAL:</strong> espera todo mundo se desconectar sozinho. Uma sessão esquecida aberta segura o shutdown.</li>
+<li><strong>TRANSACTIONAL:</strong> não deixa iniciar transação nova e espera só as que estão em andamento; quem estiver ocioso é desconectado.</li>
+<li><strong>IMMEDIATE:</strong> interrompe o SQL em execução, desconecta os usuários e faz rollback. &quot;Imediato&quot; não quer dizer instantâneo: o rollback de uma transação grande pode demorar.</li>
+<li><strong>ABORT:</strong> termina tudo na hora, sem rollback e sem fechar os arquivos de forma ordenada. O próximo STARTUP faz <strong>instance recovery automaticamente</strong>. As transações confirmadas não se perdem, porque o redo delas já está no online redo log (Parte 2).</li>
+</ul>
+<p><strong>Timeout:</strong> se o que bloqueia o shutdown não acontece em <strong>uma hora</strong>, o comando é cancelado com <code>ORA-01013</code>. A documentação manda considerar a instância num estado imprevisível, <strong>reenviar o SHUTDOWN</strong> e, se continuar falhando, usar <code>SHUTDOWN ABORT</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/SHUTDOWN.html">SQL*Plus — SHUTDOWN</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a></p>
+<h2>5. SHUTDOWN por dentro: o STARTUP ao contrário</h2>
+<p class="topico-exame">Shutting Down Oracle Database Instances</p>
+
+<p>Nos modos NORMAL, TRANSACTIONAL e IMMEDIATE, o fechamento é consistente e segue três etapas:</p>
+<ol>
+<li><code>Database closed.</code> — grava o conteúdo da SGA e fecha os datafiles e os online redo logs. Os control files continuam abertos.</li>
+<li><code>Database dismounted.</code> — desassocia o banco e fecha os <strong>control files</strong>.</li>
+<li><code>ORACLE instance shut down.</code> — libera a SGA e encerra os processos.</li>
+</ol>
+<p>No <strong>ABORT</strong> aparece só a última linha.</p>
+<p>Depois do shutdown, a sessão continua conectada, mas a uma <strong>instância ociosa</strong> (<em>idle instance</em>). É a partir dela que se faz o próximo <code>STARTUP</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a></p>
+<h2>6. Modo restrito e quiesce</h2>
+<p class="topico-exame">Starting Up Oracle Database Instances</p>
+
+<p><strong>Modo restrito</strong> mantém o banco aberto, mas só para quem tem o privilégio <code>RESTRICTED SESSION</code>. É usado em manutenção e cargas de dados.</p>
+<ul>
+<li>Na subida: <code>STARTUP RESTRICT</code>. Com o banco no ar: <code>ALTER SYSTEM ENABLE RESTRICTED SESSION</code>.</li>
+<li>Para sair: <code>ALTER SYSTEM DISABLE RESTRICTED SESSION</code>, <strong>sem precisar reiniciar</strong>.</li>
+<li><strong>Quem já está conectado não é derrubado.</strong> A documentação sugere encerrar essas sessões antes da manutenção.</li>
+<li>Com a instância restrita, <strong>nem o administrador acessa remotamente pelo listener</strong>: só localmente, no servidor.</li>
+</ul>
+<p><strong>Quiesce</strong> (<code>ALTER SYSTEM QUIESCE RESTRICTED</code>) deixa trabalhar só os DBAs, e aqui <strong>DBA quer dizer apenas SYS e SYSTEM</strong>. Quem tem a role DBA não basta. Para voltar ao normal: <code>ALTER SYSTEM UNQUIESCE</code>.</p>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a></p>
+<h2>7. STARTUP e SHUTDOWN num CDB</h2>
+<p class="topico-exame">Starting Up Oracle Database Instances</p>
+
+<p>Num CDB, o startup é feito no <strong>root</strong> por um usuário comum (na prática, <code>sqlplus / as sysdba</code>). A documentação é clara: <strong>quando o CDB abre, o root abre e os outros containers ficam montados</strong>.</p>
+<p><img src="img/posts/1z0-082-p3-cdb.svg" alt="Estado dos containers depois do STARTUP de um CDB"></p>
+<p>Para abrir as PDBs, use <code>ALTER PLUGGABLE DATABASE</code>:</p>
+<pre><code class="language-sql">ALTER PLUGGABLE DATABASE pdb1 OPEN;
+ALTER PLUGGABLE DATABASE ALL OPEN;
+ALTER PLUGGABLE DATABASE ALL EXCEPT pdb2 CLOSE IMMEDIATE;
+</code></pre>
+<p><strong>SAVE STATE</strong> faz a PDB voltar no mesmo modo depois de um restart do CDB: se estava READ WRITE, volta READ WRITE; se estava montada, volta montada. <code>DISCARD STATE</code> desfaz isso, e a PDB passa a voltar sempre montada. Os estados salvos aparecem em <code>DBA_PDB_SAVED_STATES</code>.</p>
+<p>Mais três detalhes:</p>
+<ul>
+<li><strong>Dentro da PDB</strong>, o <code>SHUTDOWN</code> fecha <strong>a PDB</strong>, e o <code>STARTUP</code> a abre.</li>
+<li><code>OPEN RESTRICTED FORCE</code> numa PDB aberta <strong>encerra</strong> as sessões sem <code>RESTRICTED SESSION</code>, com rollback das transações delas.</li>
+<li>Com o CDB em <strong>ARCHIVELOG</strong>, <code>CLOSE ABORT</code> fecha a PDB à força, sem checkpoint dos datafiles.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/administering-a-cdb-with-sql-plus.html">Administering a CDB</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/administering-pdbs-with-sql-plus.html">Administering PDBs with SQL*Plus</a></p>
+<h2>8. Quem pode ligar e desligar o banco</h2>
+<p class="topico-exame">Starting Up Oracle Database Instances</p>
+
+<p>Com o banco fechado, o dicionário não está disponível para conferir senhas. Por isso STARTUP e SHUTDOWN exigem um <strong>privilégio administrativo</strong> autenticado <strong>fora do banco</strong>: SYSDBA, SYSOPER, SYSBACKUP ou SYSDG.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>SYSDBA</th>
+<th>SYSOPER</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>STARTUP / SHUTDOWN</td>
+<td>Sim</td>
+<td>Sim</td>
+</tr>
+<tr>
+<td>ALTER DATABASE OPEN / MOUNT / BACKUP, ARCHIVELOG</td>
+<td>Sim</td>
+<td>Sim</td>
+</tr>
+<tr>
+<td>Recovery</td>
+<td>Completa e incompleta</td>
+<td><strong>Só completa</strong></td>
+</tr>
+<tr>
+<td>CREATE / DROP DATABASE</td>
+<td>Sim</td>
+<td><strong>Não</strong></td>
+</tr>
+<tr>
+<td>Ver dados de usuários</td>
+<td>Sim</td>
+<td><strong>Não</strong></td>
+</tr>
+<tr>
+<td>Schema ao conectar</td>
+<td><strong>SYS</strong></td>
+<td><strong>PUBLIC</strong></td>
+</tr>
+</tbody></table>
+<p><strong>Como esses usuários se autenticam:</strong></p>
+<ul>
+<li><strong>Pelo sistema operacional:</strong> o usuário do SO está no grupo do Oracle e conecta com <code>/ as sysdba</code>.</li>
+<li><strong>Pelo password file:</strong> necessário para conexões administrativas em rede não segura.</li>
+<li>Se você atende aos requisitos dos dois, <strong>a autenticação pelo SO tem precedência</strong>.</li>
+</ul>
+<p>Mais uma regra: <strong>não dá para fazer STARTUP nem SHUTDOWN conectado por shared server</strong>. A conexão precisa ser dedicada.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html">Getting Started with Database Administration</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a></p>
+<h2>Laboratório: para você fazer no seu 19c</h2>
+<blockquote>
+<p>⚠️ <strong>Só em laboratório.</strong> Os passos abaixo derrubam e reiniciam a instância. Nunca rode em produção.</p>
+</blockquote>
+<p>Conecte como <code>sqlplus / as sysdba</code> no <code>CDB$ROOT</code>. Troque <code>orclpdb1</code> pelo nome da sua PDB.</p>
+<p><strong>Passo 1 — Retrato antes de mexer.</strong> Anote o <code>STARTUP_TIME</code>.</p>
+<pre><code class="language-sql">SELECT instance_name, status, logins,
+       TO_CHAR(startup_time, &#39;DD/MM HH24:MI:SS&#39;) AS subiu
+FROM   v$instance;
+SHOW PDBS
+</code></pre>
+<p><strong>Passo 2 — Desligar de forma consistente.</strong> Observe as três mensagens.</p>
+<pre><code class="language-sql">SHUTDOWN IMMEDIATE
+</code></pre>
+<p><strong>Passo 3 — Só a instância (NOMOUNT).</strong> <code>V$DATABASE</code> ainda não responde; o <code>STARTUP_TIME</code> mudou.</p>
+<pre><code class="language-sql">STARTUP NOMOUNT
+SELECT status, TO_CHAR(startup_time, &#39;DD/MM HH24:MI:SS&#39;) AS subiu FROM v$instance;
+SHOW PARAMETER control_files
+SELECT name FROM v$database;
+</code></pre>
+<p><strong>Passo 4 — Montar (MOUNT).</strong> <code>V$DATABASE</code> e <code>V$DATAFILE</code> respondem; <code>DBA_TABLESPACES</code> ainda não.</p>
+<pre><code class="language-sql">ALTER DATABASE MOUNT;
+SELECT status FROM v$instance;
+SELECT name, open_mode FROM v$database;
+SELECT COUNT(*) FROM dba_tablespaces;
+</code></pre>
+<p><strong>Passo 5 — Abrir e ver as PDBs.</strong> A sua PDB aparece MOUNTED até você abri-la.</p>
+<pre><code class="language-sql">ALTER DATABASE OPEN;
+SHOW PDBS
+ALTER PLUGGABLE DATABASE ALL OPEN;
+ALTER PLUGGABLE DATABASE orclpdb1 SAVE STATE;
+SELECT con_name, state FROM dba_pdb_saved_states;
+</code></pre>
+<p><strong>Passo 6 — Modo restrito sem reiniciar.</strong></p>
+<pre><code class="language-sql">ALTER SYSTEM ENABLE RESTRICTED SESSION;
+SELECT logins FROM v$instance;
+ALTER SYSTEM DISABLE RESTRICTED SESSION;
+SELECT logins FROM v$instance;
+</code></pre>
+<p><strong>Passo 7 — ABORT e a instance recovery automática.</strong> Depois, procure no alert log as mensagens de <em>crash recovery</em>.</p>
+<pre><code class="language-sql">SHUTDOWN ABORT
+STARTUP
+</code></pre>
+<p><strong>Passo 8 — SHUTDOWN dentro da PDB.</strong> A PDB fecha, mas a instância continua <code>OPEN</code>.</p>
+<pre><code class="language-sql">ALTER SESSION SET CONTAINER = orclpdb1;
+SHUTDOWN IMMEDIATE
+SELECT name, open_mode FROM v$pdbs;
+SELECT status FROM v$instance;
+STARTUP
+ALTER SESSION SET CONTAINER = cdb$root;
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/administering-pdbs-with-sql-plus.html">Administering PDBs with SQL*Plus</a></p>
+<h2>Pontos de atenção que encontrei nos simulados</h2>
+<ul>
+<li>NOMOUNT lê o <strong>parameter file</strong>; o control file só é aberto em <strong>MOUNT</strong>.</li>
+<li><code>STARTUP</code> sem opção = <code>STARTUP OPEN</code>. <code>SHUTDOWN</code> sem opção = <code>SHUTDOWN NORMAL</code>.</li>
+<li><code>STARTUP FORCE</code> = <code>SHUTDOWN ABORT</code> + <code>STARTUP</code>.</li>
+<li>ARCHIVELOG se liga com o banco <strong>montado, não aberto</strong>.</li>
+<li>Views <code>DBA_</code> só funcionam com o banco <strong>aberto</strong>.</li>
+<li><strong>Nenhum</strong> modo de shutdown aceita novas conexões.</li>
+<li>TRANSACTIONAL espera <strong>transações</strong>, não usuários ociosos.</li>
+<li>Só o <strong>ABORT</strong> exige instance recovery no próximo startup, e ela é automática.</li>
+<li>Timeout de 1 hora: só para quem espera (NORMAL e TRANSACTIONAL).</li>
+<li><code>ENABLE RESTRICTED SESSION</code> <strong>não derruba</strong> quem já está conectado.</li>
+<li>No quiesce, &quot;DBA&quot; é só <strong>SYS e SYSTEM</strong>.</li>
+<li>Depois do STARTUP do CDB, as PDBs ficam <strong>montadas</strong>, a menos que tenham estado salvo.</li>
+<li>A role DBA não basta para STARTUP e SHUTDOWN; é preciso <strong>SYSDBA ou SYSOPER</strong> (ou SYSBACKUP/SYSDG).</li>
+<li>SYSOPER entra como <strong>PUBLIC</strong> e não faz CREATE DATABASE nem recovery incompleta.</li>
+</ul>
+<h2>Resumo em 5 linhas</h2>
+<ol>
+<li><strong>STARTUP:</strong> NOMOUNT (parameter file) → MOUNT (control files) → OPEN (datafiles e redo).</li>
+<li><strong>SHUTDOWN</strong> faz o caminho inverso: fecha, desmonta e encerra a instância.</li>
+<li>NORMAL espera usuários, TRANSACTIONAL espera transações, IMMEDIATE faz rollback e <strong>ABORT</strong> deixa a recovery para o próximo startup.</li>
+<li>Num CDB, o root abre e as PDBs ficam montadas; <strong>SAVE STATE</strong> guarda o modo delas para o próximo restart.</li>
+<li>Só <strong>SYSDBA/SYSOPER</strong> (e afins) ligam e desligam o banco, porque o dicionário não está disponível com ele fechado.</li>
+</ol>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Administrator&#39;s Guide</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html">Starting Up and Shutting Down</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html">Getting Started with Database Administration</a></li>
+</ul>
+<p><strong>SQL*Plus User&#39;s Guide and Reference</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/STARTUP.html">STARTUP</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/SHUTDOWN.html">SHUTDOWN</a></li>
+</ul>
+<p><strong>Multitenant Administrator&#39;s Guide</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/administering-a-cdb-with-sql-plus.html">Administering a CDB</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/administering-pdbs-with-sql-plus.html">Administering PDBs with SQL*Plus</a></li>
+</ul>
+<p><strong>Database Concepts, Reference e SQL</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html">About Dynamic Performance Views</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE.html">V$INSTANCE</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-DATABASE.html">ALTER DATABASE</a></li>
+</ul>
+<hr>
+<h2>Próximo artigo</h2>
+<p>Na <strong>Parte 4</strong> do Guia 1Z0-082, o assunto continua em <strong>gerenciar a instância</strong>: as visões do dicionário de dados, as visões de performance dinâmica (<code>V$</code>) e o ADR (Automatic Diagnostic Repository).</p>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js?v=202610142159"></script><script src="layout.js?v=202610142159"></script><script src="post.js"></script></body></html>

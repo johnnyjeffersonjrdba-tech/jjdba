@@ -1,0 +1,412 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>Armazenamento no Oracle: estruturas lógicas, arquivos físicos e redo (1Z0-082 · Parte 2) · JJ DBA</title>
+<meta name="description" content="Tablespace, segmento, extent e bloco; datafiles, tempfiles, control files e online redo logs; ARCHIVELOG × NOARCHIVELOG e o instance recovery — com diagramas, laboratório e links para a documentação oficial do 19c.">
+<meta name="keywords" content="Oracle, DBA, DBA, CERTIFICAÇÃO">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/armazenamento-oracle-logico-fisico.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Armazenamento no Oracle: estruturas lógicas, arquivos físicos e redo (1Z0-082 · Parte 2)">
+<meta property="og:description" content="Tablespace, segmento, extent e bloco; datafiles, tempfiles, control files e online redo logs; ARCHIVELOG × NOARCHIVELOG e o instance recovery — com diagramas, laboratório e links para a documentação oficial do 19c.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/armazenamento-oracle-logico-fisico.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/armazenamento-oracle-logico-fisico.png">
+<meta property="article:published_time" content="2026-10-13">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Armazenamento no Oracle: estruturas lógicas, arquivos físicos e redo (1Z0-082 · Parte 2)">
+<meta name="twitter:description" content="Tablespace, segmento, extent e bloco; datafiles, tempfiles, control files e online redo logs; ARCHIVELOG × NOARCHIVELOG e o instance recovery — com diagramas, laboratório e links para a documentação oficial do 19c.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/armazenamento-oracle-logico-fisico.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Armazenamento no Oracle: estruturas lógicas, arquivos físicos e redo (1Z0-082 · Parte 2)","description":"Tablespace, segmento, extent e bloco; datafiles, tempfiles, control files e online redo logs; ARCHIVELOG × NOARCHIVELOG e o instance recovery — com diagramas, laboratório e links para a documentação oficial do 19c.","datePublished":"2026-10-13","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/armazenamento-oracle-logico-fisico.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/armazenamento-oracle-logico-fisico.html","inLanguage":"pt-BR","keywords":"DBA, CERTIFICAÇÃO","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css?v=202610142159"></head><body>
+<main class="wrap"><article id="a" data-id="armazenamento-oracle-logico-fisico" style="padding:32px 0"><span class="tag">Estudo</span><span class="meta">13 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>Armazenamento no Oracle: estruturas lógicas, arquivos físicos e redo (1Z0-082 · Parte 2)</h1><img class="capa-post" src="img/posts/capa-1z0-082-parte-2.svg" alt="Armazenamento no Oracle: estruturas lógicas, arquivos físicos e redo (1Z0-082 · Parte 2)"><span class="chip">DBA</span><span class="chip">CERTIFICAÇÃO</span>
+<p>Segunda parte do <strong>Guia 1Z0-082</strong>. Na <a href="post.html?id=arquitetura-oracle-instancia">Parte 1</a> vimos a instância: memória e processos. Agora o foco é <strong>onde e como os dados ficam guardados</strong>: as estruturas lógicas que o Oracle gerencia, os arquivos físicos que o sistema operacional enxerga e o caminho que um <code>UPDATE</code> percorre até virar dado seguro em disco.</p>
+<blockquote>
+<p>Cada afirmação técnica deste artigo foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>. Os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>1. Lógico × físico: a tablespace é a ponte</h2>
+<p class="topico-exame">Understanding Logical and Physical Database Structures</p>
+
+<p>O Oracle organiza o armazenamento em dois mundos:</p>
+<p>👉 <strong>Lógico</strong> (o que o banco gerencia): <strong>tablespace → segmento → extent → data block</strong>.</p>
+<p>👉 <strong>Físico</strong> (o que o sistema operacional enxerga): <strong>datafiles e tempfiles</strong>, <strong>control files</strong> e <strong>online redo log files</strong>, todos formados por blocos do SO.</p>
+<p>A ligação entre os dois acontece em dois pontos:</p>
+<ul>
+<li><strong>No topo:</strong> a tablespace é formada por um ou mais datafiles (ou tempfiles, se for temporária).</li>
+<li><strong>Na base:</strong> cada data block corresponde a um número inteiro de blocos do SO.</li>
+</ul>
+<p><img src="img/posts/1z0-082-p2-logico-fisico.svg" alt="Hierarquia lógica e sua ligação com os arquivos físicos"></p>
+<p>Duas regras de fronteira resolvem muita dúvida:</p>
+<ul>
+<li>Um <strong>extent</strong> está sempre dentro de <strong>um único datafile</strong>. Nunca atravessa arquivos.</li>
+<li>Um <strong>segmento</strong> pertence a <strong>uma única tablespace</strong>, mas pode ter extents em <strong>datafiles diferentes</strong> dessa tablespace.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Estrutura</th>
+<th>É feita de</th>
+<th>Limite</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tablespace</td>
+<td>Segmentos (lógico) / datafiles ou tempfiles (físico)</td>
+<td>Um datafile pertence a uma só tablespace</td>
+</tr>
+<tr>
+<td>Segmento</td>
+<td>Extents de um objeto (ou partição)</td>
+<td>Nunca atravessa tablespaces</td>
+</tr>
+<tr>
+<td>Extent</td>
+<td>Data blocks logicamente contíguos</td>
+<td>Sempre dentro de um único datafile</td>
+</tr>
+<tr>
+<td>Data block</td>
+<td>Blocos do SO</td>
+<td>Menor unidade de I/O do Oracle</td>
+</tr>
+</tbody></table>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/logical-storage-structures.html">Logical Storage Structures</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/physical-storage-structures.html">Physical Storage Structures</a></p>
+<h2>2. O data block por dentro</h2>
+<p class="topico-exame">Understanding Block Space Management</p>
+
+<p>O data block é a menor unidade de armazenamento: o Oracle lê e grava em múltiplos de blocos.</p>
+<ul>
+<li>O tamanho padrão é o <code>DB_BLOCK_SIZE</code>, definido na criação do banco.</li>
+<li>Mínimo de <strong>2 KB</strong>, máximo de <strong>32 KB</strong>, e sempre múltiplo do bloco físico do SO.</li>
+</ul>
+<p>Por dentro, o bloco tem:</p>
+<ul>
+<li><strong>Block overhead:</strong> cabeçalho, table directory e row directory, em média <strong>84 a 107 bytes</strong>. O espaço do row directory <strong>não é devolvido</strong> quando linhas são apagadas; ele só é reaproveitado por novos INSERTs no bloco.</li>
+<li><strong>ITL (interested transaction list):</strong> fica no cabeçalho e indica quais transações têm linhas travadas no bloco. O Oracle guarda a informação de lock <strong>no próprio bloco</strong>, e não numa lista de locks em memória.</li>
+<li><strong>Row data e free space:</strong> as linhas e o espaço livre entre elas e o cabeçalho.</li>
+</ul>
+<p>O <strong><code>PCTFREE</code></strong> reserva uma porcentagem do bloco para os UPDATEs das linhas que já existem. O padrão é <strong>10</strong>: os INSERTs enchem o bloco até 90%.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Row migration</th>
+<th>Row chaining</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Causa</td>
+<td>Um UPDATE faz a linha crescer e ela não cabe mais no bloco</td>
+<td>A linha é grande demais para um bloco já no INSERT</td>
+</tr>
+<tr>
+<td>O que acontece</td>
+<td>A linha vai inteira para outro bloco</td>
+<td>A linha fica em pedaços encadeados</td>
+</tr>
+<tr>
+<td>Rowid</td>
+<td><strong>Não muda</strong></td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/logical-storage-structures.html">Logical Storage Structures</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html">Data Concurrency and Consistency</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/physical_attributes_clause.html">physical_attributes_clause</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/physical-database-limits.html">Physical Database Limits</a></p>
+<h2>3. Extents, segmentos e deferred segment creation</h2>
+<p class="topico-exame">Deferring Segment Creation</p>
+
+<p><strong>Extent</strong> é um conjunto de blocos contíguos alocados de uma vez. Nas tablespaces <em>locally managed</em> (o padrão), o tamanho segue uma de duas políticas:</p>
+<ul>
+<li><strong>AUTOALLOCATE</strong> (padrão): o Oracle escolhe o tamanho, com extent mínimo de <strong>64 KB</strong>.</li>
+<li><strong>UNIFORM</strong>: todos do mesmo tamanho; <strong>1 MB</strong> se você não informar.</li>
+</ul>
+<p><strong>Segmento</strong> é o conjunto de extents de um objeto: tabela, partição, índice, LOB, undo ou temporário. Views, sequences e synonyms <strong>não têm segmento</strong>: são só metadados.</p>
+<p><strong>Deferred segment creation:</strong> no 19c, <code>DEFERRED_SEGMENT_CREATION = TRUE</code> é o padrão. O <code>CREATE TABLE</code> grava só metadados. Os segmentos da tabela, dos índices e dos LOBs nascem <strong>no primeiro INSERT</strong>.</p>
+<p><strong>High water mark (HWM):</strong> separa os blocos que já foram usados dos que nunca foram. Ela só recua com <strong>rebuild, TRUNCATE ou SHRINK</strong>. Um <code>DELETE</code>, mesmo de todas as linhas, não devolve o espaço para a tablespace.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/logical-storage-structures.html">Logical Storage Structures</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DEFERRED_SEGMENT_CREATION.html">DEFERRED_SEGMENT_CREATION</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-tablespaces.html">Managing Tablespaces</a></p>
+<h2>4. As tablespaces de um banco 19c</h2>
+<p class="topico-exame">Understanding Logical and Physical Database Structures</p>
+
+<table>
+<thead>
+<tr>
+<th>Tablespace</th>
+<th>Guarda</th>
+<th>Atenção</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SYSTEM</strong></td>
+<td>Dicionário de dados</td>
+<td>Não pode ser renomeada, removida nem ficar offline</td>
+</tr>
+<tr>
+<td><strong>SYSAUX</strong></td>
+<td>Schemas de vários produtos e recursos Oracle</td>
+<td>Sempre criada com o banco; não pode ser renomeada nem removida</td>
+</tr>
+<tr>
+<td><strong>UNDO</strong></td>
+<td>Segmentos de undo</td>
+<td>Não pode ficar offline</td>
+</tr>
+<tr>
+<td><strong>TEMP</strong></td>
+<td>Sorts, hash joins, tabelas temporárias (em tempfiles)</td>
+<td>Temporárias não podem ficar offline</td>
+</tr>
+<tr>
+<td><strong>USERS</strong></td>
+<td>Objetos de usuários</td>
+<td>Criada pelo DBCA como default</td>
+</tr>
+</tbody></table>
+<p><strong>Smallfile × bigfile:</strong></p>
+<ul>
+<li><strong>Smallfile</strong> (tradicional): até <strong>1023 datafiles</strong>, cada um com até cerca de <strong>4 milhões (2²²) de blocos</strong>.</li>
+<li><strong>Bigfile</strong>: <strong>um único datafile</strong>, com até cerca de <strong>4 bilhões (2³²) de blocos</strong>. São <strong>32 TB</strong> com bloco de 8 KB e <strong>128 TB</strong> com 32 KB.</li>
+</ul>
+<p><strong>Tablespace read only:</strong> dá para <strong>remover</strong> objetos (<code>DROP TABLE</code> funciona), mas não dá para <strong>criar nem alterar</strong>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-tablespaces.html">Managing Tablespaces</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/physical-database-limits.html">Physical Database Limits</a></p>
+<h2>5. Datafiles, tempfiles e control files</h2>
+<p class="topico-exame">Understanding Logical and Physical Database Structures</p>
+
+<p><strong>Datafiles</strong> guardam os dados de tabelas, índices, undo e dicionário. Cada um pertence a uma única tablespace.</p>
+<p><strong>Tempfiles</strong> pertencem às tablespaces temporárias e se comportam diferente:</p>
+<ul>
+<li><strong>nunca</strong> guardam objetos permanentes;</li>
+<li>o <strong>media recovery não os reconhece</strong>;</li>
+<li>aparecem em <code>V$TEMPFILE</code> e <code>DBA_TEMP_FILES</code>, e <strong>não</strong> em <code>V$DATAFILE</code> nem em <code>DBA_DATA_FILES</code>.</li>
+</ul>
+<p><strong>Control file:</strong> um arquivo binário pequeno que registra a <strong>estrutura física do banco</strong>:</p>
+<ul>
+<li>nome do banco e data de criação;</li>
+<li>nomes e locais dos datafiles e dos redo logs;</li>
+<li>número de sequência do log corrente;</li>
+<li>informação de checkpoint.</li>
+</ul>
+<p>É lido no estágio <strong>MOUNT</strong>.</p>
+<p>A multiplexação dos control files funciona assim:</p>
+<ul>
+<li>A instância <strong>grava em todas as cópias</strong> listadas em <code>CONTROL_FILES</code>, mas <strong>lê só a primeira</strong>.</li>
+<li>Se uma cópia fica indisponível com o banco aberto, <strong>a instância fica inoperante</strong>. Multiplexar não evita a queda; evita a perda.</li>
+<li>Com uma cópia boa, basta restaurá-la por cima da danificada e reiniciar, <strong>sem media recovery</strong>.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/physical-storage-structures.html">Physical Storage Structures</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-control-files.html">Managing Control Files</a></p>
+<h2>6. Online redo log: grupos, membros e log switch</h2>
+<p class="topico-exame">Understanding Logical and Physical Database Structures</p>
+
+<p>O online redo log registra <strong>todas as mudanças</strong> para que possam ser refeitas numa recuperação.</p>
+<ul>
+<li>São <strong>no mínimo dois grupos</strong>, e cada arquivo tem <strong>no mínimo 4 MB</strong>.</li>
+<li>Cada grupo pode ter vários <strong>membros</strong>, que são cópias idênticas. O LGWR grava <strong>em todos os membros do grupo corrente ao mesmo tempo</strong>.</li>
+<li>Se um membro falha, ele fica marcado como <code>INVALID</code> e o LGWR segue gravando nos outros. Se <strong>todos os membros do próximo grupo</strong> estão inacessíveis no log switch, <strong>a instância cai</strong>.</li>
+</ul>
+<p>O uso é circular: quando o grupo corrente enche, acontece o <strong>log switch</strong> e o LGWR passa para o próximo grupo.</p>
+<p><img src="img/posts/1z0-082-p2-redo.svg" alt="Ciclo do online redo log: grupos, membros e estados"></p>
+<p>Estados em <code>V$LOG</code>:</p>
+<ul>
+<li><strong>CURRENT:</strong> o grupo em que o LGWR está gravando.</li>
+<li><strong>ACTIVE:</strong> ainda necessário para o instance recovery.</li>
+<li><strong>INACTIVE:</strong> não é mais necessário para o instance recovery.</li>
+</ul>
+<p><strong>Só se remove um grupo inativo</strong> e, em ARCHIVELOG, depois de arquivado.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>NOARCHIVELOG</th>
+<th>ARCHIVELOG</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Grupo pode ser reutilizado quando</td>
+<td>As mudanças nele foram gravadas nos datafiles</td>
+<td>Isso <strong>e</strong> o grupo foi arquivado</td>
+</tr>
+<tr>
+<td>ARCn</td>
+<td>Não existe</td>
+<td>Existe</td>
+</tr>
+</tbody></table>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-the-redo-log.html">Managing the Redo Log</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-archived-redo-log-files.html">Managing Archived Redo Log Files</a></p>
+<h2>7. Arquivos que não são o banco</h2>
+<p class="topico-exame">Using the Alert Log and Trace Files</p>
+
+<p>O banco é composto por <strong>datafiles, tempfiles, control files e online redo logs</strong>. Outros arquivos são indispensáveis para operar o servidor, mas <strong>não fazem parte do banco</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Arquivo</th>
+<th>Para quê</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>spfile / pfile</strong></td>
+<td>Parâmetros de inicialização da instância (lidos no NOMOUNT)</td>
+</tr>
+<tr>
+<td><strong>Password file</strong></td>
+<td>Autenticar SYSDBA, SYSOPER e afins com o banco fechado ou remotamente</td>
+</tr>
+<tr>
+<td><strong>Alert log e trace files</strong></td>
+<td>Diagnóstico. Ficam no <strong>ADR</strong> (Automatic Diagnostic Repository), fora do banco</td>
+</tr>
+<tr>
+<td><strong>Archived redo logs e backups</strong></td>
+<td>Recuperação</td>
+</tr>
+</tbody></table>
+<p>Um detalhe útil: o alert log é criado <strong>quando a instância sobe pela primeira vez, mesmo antes de existir banco</strong>. <code>V$DIAG_INFO</code> mostra onde ele está.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/physical-storage-structures.html">Physical Storage Structures</a></p>
+<h2>8. Arquitetura em ação: UPDATE, COMMIT e instance recovery</h2>
+<p class="topico-exame">Understanding Oracle Database Server Architecture</p>
+
+<p>Juntando a Parte 1 com esta, um <code>UPDATE</code> seguido de <code>COMMIT</code> fica assim:</p>
+<ol>
+<li>O server process faz o <strong>parse</strong>: soft parse se o SQL já está na library cache, hard parse se não está.</li>
+<li>Lê o bloco para o <strong>buffer cache</strong>, grava os valores antigos no <strong>undo</strong>, trava a linha (<strong>ITL</strong>) e altera o bloco.</li>
+<li>As mudanças no bloco de dados <strong>e</strong> no bloco de undo geram <strong>redo</strong>, que vai para o redo log buffer.</li>
+<li>No <strong>COMMIT</strong>, o <strong>LGWR</strong> grava o redo no online redo log, e só então o COMMIT retorna.</li>
+<li>Mais tarde, o <strong>DBWn</strong> grava os blocos alterados nos datafiles, sempre <strong>depois</strong> do redo correspondente.</li>
+</ol>
+<p>Enquanto isso, as consultas veem os dados <strong>confirmados no momento em que começaram</strong> (<em>statement-level read consistency</em>): <strong>leitores não bloqueiam escritores, e escritores não bloqueiam leitores</strong>. Se o undo necessário já foi sobrescrito, uma consulta longa pode falhar com <em>snapshot too old</em>.</p>
+<p>Se a instância cair, o <strong>SMON</strong> faz o <strong>instance recovery</strong> sozinho no próximo STARTUP:</p>
+<p><img src="img/posts/1z0-082-p2-recovery.svg" alt="Instance recovery: roll forward com redo, depois roll back com undo"></p>
+<ul>
+<li><strong>Roll forward (cache recovery):</strong> reaplica tudo o que está no online redo. Como o redo também protege o undo, os segmentos de undo são regenerados.</li>
+<li><strong>Roll back (transaction recovery):</strong> usa o undo para desfazer o que não foi confirmado. Novas transações não precisam esperar o SMON terminar: elas mesmas desfazem os blocos de que precisam.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html">Data Concurrency and Consistency</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html">Transactions</a></p>
+<h2>9. Schemas e schema objects</h2>
+<p class="topico-exame">Understanding Logical and Physical Database Structures</p>
+
+<p><strong>Schema</strong> é a coleção de objetos de um usuário, com o mesmo nome dele: o usuário HR tem o schema HR.</p>
+<p>O ponto que mais confunde: <strong>schema e tablespace não têm relação</strong>. Uma tablespace pode guardar objetos de vários schemas, e os objetos de um schema podem estar em várias tablespaces.</p>
+<table>
+<thead>
+<tr>
+<th>Objeto</th>
+<th>Tem segmento?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tabela, índice, LOB, partição</td>
+<td>Sim</td>
+</tr>
+<tr>
+<td>View, sequence, synonym</td>
+<td>Não (só metadados)</td>
+</tr>
+<tr>
+<td>Procedure / package</td>
+<td>Não (código no dicionário)</td>
+</tr>
+</tbody></table>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/tables-and-table-clusters.html">Tables and Table Clusters</a></p>
+<h2>Laboratório: para você fazer no seu 19c</h2>
+<p>Conecte como <code>sqlplus / as sysdba</code>. Os passos 1 a 3 rodam no <code>CDB$ROOT</code>; do passo 4 em diante, entre na sua PDB. Cada bloco tem um botão <strong>Copiar</strong>.</p>
+<p><strong>Passo 1 — Control files.</strong> Mais de uma linha = multiplexado.</p>
+<pre><code class="language-sql">SELECT name FROM v$controlfile;
+SHOW PARAMETER control_files
+</code></pre>
+<p><strong>Passo 2 — Grupos e membros do online redo log.</strong> Exatamente um grupo fica <code>CURRENT</code>.</p>
+<pre><code class="language-sql">SELECT group#, sequence#, ROUND(bytes/1024/1024) AS mb, members, archived, status
+FROM   v$log
+ORDER  BY group#;
+
+SELECT group#, status, member
+FROM   v$logfile
+ORDER  BY group#;
+</code></pre>
+<p><strong>Passo 3 — Modo de arquivamento.</strong></p>
+<pre><code class="language-sql">ARCHIVE LOG LIST
+SELECT log_mode FROM v$database;
+</code></pre>
+<p><strong>Passo 4 — Tablespaces da PDB.</strong> Troque <code>orclpdb1</code> pelo nome da sua PDB.</p>
+<pre><code class="language-sql">ALTER SESSION SET CONTAINER = orclpdb1;
+
+SELECT tablespace_name, contents, bigfile, block_size,
+       extent_management, allocation_type, segment_space_management
+FROM   dba_tablespaces
+ORDER  BY 1;
+</code></pre>
+<p><strong>Passo 5 — Datafiles × tempfiles.</strong> Repare que o tempfile só aparece na segunda consulta.</p>
+<pre><code class="language-sql">SELECT file_id, tablespace_name, ROUND(bytes/1024/1024) AS mb, file_name
+FROM   dba_data_files
+ORDER  BY file_id;
+
+SELECT file_id, tablespace_name, ROUND(bytes/1024/1024) AS mb, file_name
+FROM   dba_temp_files;
+</code></pre>
+<p><strong>Passo 6 — Deferred segment creation na prática.</strong> O segmento só aparece depois do primeiro INSERT.</p>
+<pre><code class="language-sql">CREATE TABLE lab_seg (id NUMBER);
+
+SELECT segment_created FROM user_tables WHERE table_name = &#39;LAB_SEG&#39;;
+SELECT COUNT(*) FROM user_segments WHERE segment_name = &#39;LAB_SEG&#39;;
+
+INSERT INTO lab_seg VALUES (1);
+COMMIT;
+
+SELECT COUNT(*) FROM user_segments WHERE segment_name = &#39;LAB_SEG&#39;;
+
+DROP TABLE lab_seg PURGE;
+</code></pre>
+<p>Faça o passo 6 com um <strong>usuário comum da PDB</strong> cuja tablespace padrão não seja a SYSTEM. A criação adiada <strong>não vale</strong> para tabelas de SYS, SYSTEM, PUBLIC, OUTLN e XDB, nem na tablespace SYSTEM.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-control-files.html">Managing Control Files</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-the-redo-log.html">Managing the Redo Log</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-tablespaces.html">Managing Tablespaces</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DEFERRED_SEGMENT_CREATION.html">DEFERRED_SEGMENT_CREATION</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-TABLE.html">CREATE TABLE</a></p>
+<h2>Pontos de atenção que encontrei nos simulados</h2>
+<ul>
+<li>Extent <strong>nunca</strong> atravessa datafiles; segmento <strong>nunca</strong> atravessa tablespaces.</li>
+<li><code>PCTFREE</code> reserva espaço para <strong>UPDATE</strong> de linhas existentes, não para INSERT. Padrão: 10.</li>
+<li>Row migration <strong>mantém o rowid</strong>.</li>
+<li>No 19c, <code>CREATE TABLE</code> <strong>não cria segmento</strong> por padrão: ele nasce no primeiro INSERT.</li>
+<li><code>DELETE</code> não baixa a high water mark; <code>TRUNCATE</code> sim.</li>
+<li>SYSTEM, undo e temporárias <strong>não ficam offline</strong>.</li>
+<li>Em tablespace read only dá para fazer <strong>DROP</strong>, mas não CREATE nem ALTER.</li>
+<li>Bigfile = <strong>um único</strong> datafile.</li>
+<li>A instância grava em todas as cópias do control file, mas <strong>lê só a primeira</strong>.</li>
+<li>Tempfile não aparece em <code>V$DATAFILE</code>.</li>
+<li>Só se remove grupo de redo <strong>inativo</strong>.</li>
+<li>Instance recovery: primeiro <strong>roll forward</strong> (redo), depois <strong>roll back</strong> (undo).</li>
+<li>Schema <strong>não tem relação</strong> com tablespace.</li>
+</ul>
+<h2>Resumo em 5 linhas</h2>
+<ol>
+<li><strong>Lógico:</strong> tablespace → segmento → extent → bloco. <strong>Físico:</strong> datafiles, tempfiles, control files e online redo logs.</li>
+<li>Extent fica em um datafile só; segmento fica em uma tablespace só.</li>
+<li>O <strong>control file</strong> é o mapa físico do banco, lido no MOUNT; multiplexar evita perder o arquivo, não a queda.</li>
+<li>O <strong>online redo</strong> é circular, com no mínimo dois grupos; em ARCHIVELOG cada grupo é arquivado antes de ser reutilizado.</li>
+<li>Depois de uma queda, o <strong>SMON</strong> faz roll forward com o redo e roll back com o undo.</li>
+</ol>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Database Concepts</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/logical-storage-structures.html">Logical Storage Structures</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/physical-storage-structures.html">Physical Storage Structures</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html">Oracle Database Instance</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html">Data Concurrency and Consistency</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html">Transactions</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/tables-and-table-clusters.html">Tables and Table Clusters</a></li>
+</ul>
+<p><strong>Administrator&#39;s Guide</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-tablespaces.html">Managing Tablespaces</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-control-files.html">Managing Control Files</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-the-redo-log.html">Managing the Redo Log</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-archived-redo-log-files.html">Managing Archived Redo Log Files</a></li>
+</ul>
+<p><strong>Database Reference e SQL</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DEFERRED_SEGMENT_CREATION.html">DEFERRED_SEGMENT_CREATION</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/physical-database-limits.html">Physical Database Limits</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-TABLE.html">CREATE TABLE</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/physical_attributes_clause.html">physical_attributes_clause (PCTFREE, INITRANS)</a></li>
+</ul>
+<hr>
+<h2>Próximo artigo</h2>
+<p>Na <strong>Parte 3</strong> do Guia 1Z0-082, o assunto é <strong>gerenciar a instância</strong>: arquivos de parâmetros, as fases do STARTUP e os modos de SHUTDOWN.</p>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js?v=202610142159"></script><script src="layout.js?v=202610142159"></script><script src="post.js"></script></body></html>

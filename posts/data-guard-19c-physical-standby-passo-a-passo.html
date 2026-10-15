@@ -1,0 +1,558 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker · JJ DBA</title>
+<meta name="description" content="O passo a passo que uso para criar uma physical standby 19c de um CDB com a PDB dbprod — preparação do primário, password file, listener estático, DUPLICATE FROM ACTIVE com ASM/OMF, apply, Oracle Restart e Broker — validado na documentação oficial, com script de verificação e troubleshooting.">
+<meta name="keywords" content="Oracle, DBA, DATAGUARD, DBA, LINUX">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/data-guard-19c-physical-standby-passo-a-passo.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker">
+<meta property="og:description" content="O passo a passo que uso para criar uma physical standby 19c de um CDB com a PDB dbprod — preparação do primário, password file, listener estático, DUPLICATE FROM ACTIVE com ASM/OMF, apply, Oracle Restart e Broker — validado na documentação oficial, com script de verificação e troubleshooting.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/data-guard-19c-physical-standby-passo-a-passo.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/data-guard-19c-physical-standby-passo-a-passo.png">
+<meta property="article:published_time" content="2026-10-14">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker">
+<meta name="twitter:description" content="O passo a passo que uso para criar uma physical standby 19c de um CDB com a PDB dbprod — preparação do primário, password file, listener estático, DUPLICATE FROM ACTIVE com ASM/OMF, apply, Oracle Restart e Broker — validado na documentação oficial, com script de verificação e troubleshooting.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/data-guard-19c-physical-standby-passo-a-passo.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker","description":"O passo a passo que uso para criar uma physical standby 19c de um CDB com a PDB dbprod — preparação do primário, password file, listener estático, DUPLICATE FROM ACTIVE com ASM/OMF, apply, Oracle Restart e Broker — validado na documentação oficial, com script de verificação e troubleshooting.","datePublished":"2026-10-14","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/data-guard-19c-physical-standby-passo-a-passo.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/data-guard-19c-physical-standby-passo-a-passo.html","inLanguage":"pt-BR","keywords":"DATAGUARD, DBA, LINUX","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css?v=202610142159"></head><body>
+<main class="wrap"><article id="a" data-id="data-guard-19c-physical-standby-passo-a-passo" style="padding:32px 0"><span class="tag">Na prática</span><span class="meta">14 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker</h1><img class="capa-post" src="img/posts/capa-dg19c.svg" alt="Data Guard 19c na prática: physical standby com RMAN DUPLICATE, ASM/OMF e Broker"><span class="chip">DATAGUARD</span><span class="chip">DBA</span><span class="chip">LINUX</span>
+<p>Montar um <strong>Data Guard</strong> é uma das tarefas mais comuns e mais importantes do dia a dia de um DBA Oracle. Neste artigo registro o passo a passo que uso para criar uma <strong>physical standby 19c</strong> com <strong>RMAN DUPLICATE FROM ACTIVE DATABASE</strong>, <strong>ASM com OMF</strong> e <strong>Data Guard Broker</strong>, comparando cada etapa com a documentação oficial da Oracle e anotando os problemas que encontrei pelo caminho.</p>
+<blockquote>
+<p>Cenário de laboratório, com nomes genéricos. Cada etapa foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>; os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>Antes de começar: Enterprise Edition × Standard Edition</h2>
+<p>Antes de planejar um Data Guard, confira a <strong>edição</strong> do banco. A documentação é direta:</p>
+<blockquote>
+<p><em>&quot;Oracle Data Guard is available only as a feature of Oracle Database Enterprise Edition. It is not available with Oracle Database Standard Edition.&quot;</em></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Standard Edition 2</th>
+<th>Enterprise Edition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data Guard</strong> (Redo Apply, Broker, snapshot standby)</td>
+<td>Não</td>
+<td><strong>Sim</strong>, incluído na licença EE</td>
+</tr>
+<tr>
+<td><strong>Active Data Guard</strong> (standby aberta READ ONLY com apply, far sync, cascata em tempo real)</td>
+<td>Não</td>
+<td>Só com a <strong>option Active Data Guard</strong>, licenciada à parte</td>
+</tr>
+<tr>
+<td><strong>Standby manual</strong> (cópia de archives + media recovery)</td>
+<td><strong>Sim</strong></td>
+<td>Sim</td>
+</tr>
+</tbody></table>
+<p><strong>E no Standard Edition?</strong> A documentação diz que é possível <strong>simular</strong> um ambiente de standby:</p>
+<ul>
+<li>os archived redo logs são copiados para o outro servidor com um utilitário do SO ou com scripts próprios, de tempos em tempos;</li>
+<li>no destino, eles são registrados e aplicados com <strong>media recovery</strong>, mantendo a cópia do banco atualizada.</li>
+</ul>
+<p>A própria Oracle avisa que essa configuração <strong>não oferece</strong> a facilidade de uso, o gerenciamento, a performance nem as capacidades de recuperação de desastre do Data Guard. Não há Broker, transporte automático nem switchover gerenciado.</p>
+<p>A mesma página lembra outra regra: <strong>a mesma release do Enterprise Edition</strong> deve estar instalada no primário e nas standbys. A exceção são os upgrades <em>rolling</em> com standby lógica.</p>
+<p>Tudo o que vem a seguir é <strong>Data Guard em Enterprise Edition</strong>, sem usar recursos do Active Data Guard.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/getting-started-with-oracle-data-guard.html">Getting Started with Oracle Data Guard</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dblic/Licensing-Information.html">Database Licensing Information</a></p>
+<h2>1. Cenário</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Primário</th>
+<th>Standby</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Host</td>
+<td><code>srv-lab-ora-01</code></td>
+<td><code>srv-lab-ora-02</code></td>
+</tr>
+<tr>
+<td>Papel</td>
+<td>Primary</td>
+<td>Physical Standby</td>
+</tr>
+<tr>
+<td><code>ORACLE_SID</code></td>
+<td><code>cdbprd</code></td>
+<td><code>cdbprd</code></td>
+</tr>
+<tr>
+<td><code>DB_NAME</code></td>
+<td><code>cdbprd</code></td>
+<td><code>cdbprd</code></td>
+</tr>
+<tr>
+<td><code>DB_UNIQUE_NAME</code></td>
+<td><code>cdbprd</code></td>
+<td><code>cdbprd_stby</code></td>
+</tr>
+<tr>
+<td>Alias TNS</td>
+<td><code>CDBPRD_TNS</code></td>
+<td><code>CDBPRD_STBY_TNS</code></td>
+</tr>
+<tr>
+<td>Serviço estático do Broker</td>
+<td><code>CDBPRD_DGMGRL</code></td>
+<td><code>CDBPRD_STBY_DGMGRL</code></td>
+</tr>
+<tr>
+<td>PDB</td>
+<td><code>dbprod</code></td>
+<td><code>dbprod</code> (replicada junto com o CDB)</td>
+</tr>
+<tr>
+<td>Armazenamento</td>
+<td>ASM (<code>+DATA</code> / <code>+RECO</code>)</td>
+<td>ASM com <strong>OMF</strong> (<code>+DATA</code> / <code>+RECO</code>)</td>
+</tr>
+<tr>
+<td><code>ORACLE_HOME</code></td>
+<td><code>/u01/app/oracle/product/19c/dbhome_1</code></td>
+<td><code>/u01/app/oracle/product/19c/dbhome_1</code></td>
+</tr>
+<tr>
+<td>Listener</td>
+<td>Grid Infrastructure</td>
+<td>Grid Infrastructure</td>
+</tr>
+</tbody></table>
+<p>Três regras de nomes que valem a pena fixar:</p>
+<ul>
+<li><strong><code>DB_NAME</code> é igual</strong> nos dois lados: para criar uma standby com DUPLICATE, ele tem que ser o mesmo do primário.</li>
+<li><strong><code>DB_UNIQUE_NAME</code> é diferente</strong>: é ele que identifica cada membro na configuração.</li>
+<li><strong>O <code>ORACLE_SID</code> pode ser igual</strong>, porque são servidores diferentes.</li>
+</ul>
+<p><img src="img/posts/dg19c-arquitetura.svg" alt="Arquitetura do Data Guard: transporte de redo, standby redo logs e apply"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-duplicating-databases.html">Duplicating Databases (RMAN)</a></p>
+<h2>2. Preparar o primário</h2>
+<h3>2.1 ARCHIVELOG, FORCE LOGGING e FLASHBACK</h3>
+<p>O primário precisa estar em <strong>ARCHIVELOG</strong>. Com <code>FORCE LOGGING</code>, nenhuma carga é feita sem gerar redo: a documentação explica que o modo padrão permite operações <em>nologging</em>, e esses dados ficariam faltando na standby.</p>
+<pre><code class="language-bash">srvctl stop database -db cdbprd
+srvctl start database -db cdbprd -startoption mount
+</code></pre>
+<pre><code class="language-sql">ALTER DATABASE ARCHIVELOG;
+ALTER DATABASE FORCE LOGGING;
+ALTER DATABASE FLASHBACK ON;
+</code></pre>
+<pre><code class="language-bash">srvctl stop database -db cdbprd
+srvctl start database -db cdbprd
+</code></pre>
+<pre><code class="language-sql">SELECT log_mode, force_logging, flashback_on FROM v$database;
+</code></pre>
+<p>Esperado: <code>ARCHIVELOG | YES | YES</code>. O Flashback não é obrigatório para o Data Guard, mas é o que permite <strong>reinstate</strong> do antigo primário depois de um failover.</p>
+<h3>2.2 Standby Redo Logs (SRL)</h3>
+<p>Regra da documentação:</p>
+<ul>
+<li><strong>Quantidade:</strong> pelo menos <strong>um grupo a mais</strong> que os grupos de redo online, <strong>por thread</strong>.</li>
+<li><strong>Tamanho:</strong> cada SRL deve ser <strong>pelo menos do tamanho</strong> do maior redo online. A Oracle recomenda <strong>o mesmo tamanho</strong> para todos.</li>
+<li><strong>Onde:</strong> criar também no <strong>primário</strong> é boa prática, para quando ele assumir o papel de standby num switchover.</li>
+</ul>
+<p>Exemplo para 3 grupos de 200 MB (thread 1) → <strong>4 SRLs de 200 MB</strong>:</p>
+<pre><code class="language-sql">ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 101 (&#39;+DATA&#39;) SIZE 200M;
+ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 102 (&#39;+DATA&#39;) SIZE 200M;
+ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 103 (&#39;+DATA&#39;) SIZE 200M;
+ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 104 (&#39;+DATA&#39;) SIZE 200M;
+
+SELECT group#, thread#, bytes/1024/1024 AS mb, status FROM v$standby_log;
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html">Redo Transport Services</a></p>
+<h2>3. Password file</h2>
+<p>Sem SSL, <strong>cada standby precisa de uma cópia atualizada do password file do primário</strong>. É a causa número 1 de <code>ORA-01017</code> e <code>ORA-16191</code>.</p>
+<p>Com Grid e ASM, o password file costuma ficar dentro do ASM. Para copiar:</p>
+<pre><code class="language-bash"># primário (grid): extrai do ASM
+asmcmd pwcopy +DATA/CDBPRD/PASSWORD/&lt;arquivo&gt; /tmp/orapwcdbprd
+
+# standby (oracle): copia para o ORACLE_HOME e confere
+scp oracle@srv-lab-ora-01:/tmp/orapwcdbprd $ORACLE_HOME/dbs/orapwcdbprd
+md5sum $ORACLE_HOME/dbs/orapwcdbprd
+</code></pre>
+<p>O <code>md5sum</code> tem que ser <strong>igual</strong> ao do primário. Não recrie o arquivo com <code>orapwd</code> na standby.</p>
+<p>A partir da 12.2, as alterações feitas depois no password file do primário são <strong>propagadas automaticamente</strong> para as standbys. A cópia inicial continua sendo manual.</p>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a></p>
+<h2>4. Rede: listener estático e tnsnames</h2>
+<p>Durante o DUPLICATE, a standby está em <strong>NOMOUNT</strong> e não se registra no listener. Por isso, cada lado precisa de <strong>entradas estáticas</strong> no <code>listener.ora</code> do Grid. Elas também servem ao Broker, que exige um serviço <strong>registrado estaticamente</strong> para conseguir parar e subir as instâncias.</p>
+<p><strong><code>listener.ora</code> (usuário grid) — standby <code>srv-lab-ora-02</code>.</strong> No primário é igual, com <code>CDBPRD</code> e <code>CDBPRD_DGMGRL</code>.</p>
+<pre><code>SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (GLOBAL_DBNAME = CDBPRD_STBY)
+      (ORACLE_HOME   = /u01/app/oracle/product/19c/dbhome_1)
+      (SID_NAME      = cdbprd)
+    )
+    (SID_DESC =
+      (GLOBAL_DBNAME = CDBPRD_STBY_DGMGRL)
+      (ORACLE_HOME   = /u01/app/oracle/product/19c/dbhome_1)
+      (SID_NAME      = cdbprd)
+    )
+  )
+</code></pre>
+<ul>
+<li>O <code>ORACLE_HOME</code> é o do <strong>banco</strong>, não o do Grid.</li>
+<li>Depois de editar, rode <code>lsnrctl reload</code>. As entradas estáticas aparecem com status <code>UNKNOWN</code>, e isso é normal.</li>
+</ul>
+<p><strong><code>tnsnames.ora</code> — idêntico nos dois servidores:</strong></p>
+<pre><code>CDBPRD_TNS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = srv-lab-ora-01)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CDBPRD)))
+
+CDBPRD_STBY_TNS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = srv-lab-ora-02)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CDBPRD_STBY)(UR = A)))
+
+CDBPRD_DGMGRL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = srv-lab-ora-01)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CDBPRD_DGMGRL)))
+
+CDBPRD_STBY_DGMGRL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = srv-lab-ora-02)(PORT = 1521))
+    (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = CDBPRD_STBY_DGMGRL)))
+</code></pre>
+<p>O <code>(UR = A)</code> permite conectar numa instância em NOMOUNT, que aparece como <code>BLOCKED</code> no listener.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-duplicating-databases.html">Duplicating Databases (RMAN)</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-properties.html">Broker Properties — StaticConnectIdentifier</a></p>
+<h2>5. Preparar a standby e testar a conexão</h2>
+<p>Para a instância auxiliar, a documentação pede um parameter file com <strong><code>DB_NAME</code></strong>. Como o banco é um <strong>CDB</strong>, inclua também <strong><code>ENABLE_PLUGGABLE_DATABASE=TRUE</code></strong>:</p>
+<pre><code class="language-bash">mkdir -p /u01/app/oracle/admin/cdbprd/adump
+cat &gt; $ORACLE_HOME/dbs/initcdbprd.ora &lt;&lt;&#39;EOF&#39;
+DB_NAME=cdbprd
+ENABLE_PLUGGABLE_DATABASE=TRUE
+EOF
+</code></pre>
+<p>Se existir um <code>spfilecdbprd.ora</code> de uma tentativa anterior, renomeie-o: o Oracle lê o spfile antes do init.ora.</p>
+<pre><code class="language-sql">STARTUP NOMOUNT
+</code></pre>
+<p>Antes do DUPLICATE, <strong>teste a conexão nos dois servidores</strong>:</p>
+<pre><code class="language-bash">tnsping CDBPRD_TNS
+tnsping CDBPRD_STBY_TNS
+rman target sys@CDBPRD_TNS auxiliary sys@CDBPRD_STBY_TNS
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Erro</th>
+<th>Causa provável</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ORA-12154</code></td>
+<td>Alias ausente no tnsnames.ora daquele servidor</td>
+</tr>
+<tr>
+<td><code>ORA-12541</code></td>
+<td>Listener parado, firewall ou nome de host errado</td>
+</tr>
+<tr>
+<td><code>ORA-12514</code> / <code>ORA-12528</code></td>
+<td>Falta a entrada estática ou o <code>lsnrctl reload</code>; falta <code>(UR = A)</code></td>
+</tr>
+<tr>
+<td><code>ORA-01017</code></td>
+<td>Password file diferente entre os lados ou senha errada</td>
+</tr>
+</tbody></table>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-duplicating-databases.html">Duplicating Databases (RMAN)</a></p>
+<h2>6. Parâmetros de Data Guard no primário</h2>
+<pre><code class="language-sql">ALTER SYSTEM SET log_archive_config=&#39;DG_CONFIG=(cdbprd,cdbprd_stby)&#39; SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_dest_1=&#39;LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME=cdbprd&#39; SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_dest_2=&#39;SERVICE=CDBPRD_STBY_TNS ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=cdbprd_stby&#39; SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_dest_state_2=DEFER SCOPE=BOTH;
+ALTER SYSTEM SET standby_file_management=&#39;AUTO&#39; SCOPE=BOTH;
+ALTER SYSTEM SET fal_server=&#39;CDBPRD_STBY_TNS&#39; SCOPE=BOTH;
+SHOW PARAMETER remote_login_passwordfile
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Para que serve (documentação)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>LOG_ARCHIVE_CONFIG</code></td>
+<td><code>DG_CONFIG</code> precisa estar definido em <strong>cada</strong> banco da configuração</td>
+</tr>
+<tr>
+<td><code>LOG_ARCHIVE_DEST_2</code></td>
+<td>Envia o redo para a standby. <code>ASYNC</code>: o commit <strong>não espera</strong> o envio</td>
+</tr>
+<tr>
+<td><code>STANDBY_FILE_MANAGEMENT=AUTO</code></td>
+<td>Datafiles criados ou removidos no primário são replicados na standby</td>
+</tr>
+<tr>
+<td><code>FAL_SERVER</code></td>
+<td>De quem a standby busca os archives que faltarem (gap)</td>
+</tr>
+<tr>
+<td><code>REMOTE_LOGIN_PASSWORDFILE</code></td>
+<td><code>EXCLUSIVE</code> ou <code>SHARED</code> quando há password file</td>
+</tr>
+</tbody></table>
+<p>Deixo o <code>DEST_2</code> em <strong>DEFER</strong> até a standby existir, para o alert log do primário não ficar registrando erro de envio.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html">Redo Transport Services</a></p>
+<h2>7. Criar a standby com RMAN DUPLICATE (OMF)</h2>
+<p>Execute a partir da standby. Em outra janela, acompanhe o alert log dela.</p>
+<pre><code>rman target sys@CDBPRD_TNS auxiliary sys@CDBPRD_STBY_TNS
+
+run {
+  allocate channel p1 type disk;
+  allocate channel p2 type disk;
+  allocate auxiliary channel s1 type disk;
+  duplicate target database for standby from active database dorecover nofilenamecheck
+    spfile
+      set db_unique_name=&#39;cdbprd_stby&#39;
+      set db_create_file_dest=&#39;+DATA&#39;
+      set db_create_online_log_dest_1=&#39;+DATA&#39;
+      set db_create_online_log_dest_2=&#39;+RECO&#39;
+      set db_recovery_file_dest=&#39;+RECO&#39;
+      set db_recovery_file_dest_size=&#39;20G&#39;
+      set control_files=&#39;+DATA&#39;,&#39;+RECO&#39;
+      set audit_file_dest=&#39;/u01/app/oracle/admin/cdbprd/adump&#39;
+      set log_archive_config=&#39;DG_CONFIG=(cdbprd,cdbprd_stby)&#39;
+      set log_archive_dest_1=&#39;LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME=cdbprd_stby&#39;
+      set log_archive_dest_2=&#39;SERVICE=CDBPRD_TNS ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=cdbprd&#39;
+      set fal_server=&#39;CDBPRD_TNS&#39;
+      set standby_file_management=&#39;AUTO&#39;;
+}
+</code></pre>
+<p>Dois detalhes:</p>
+<ul>
+<li><strong>Com OMF não é preciso <code>DB_FILE_NAME_CONVERT</code> nem <code>LOG_FILE_NAME_CONVERT</code>:</strong> o Oracle cria os arquivos em <code>+DATA/CDBPRD_STBY/...</code> sozinho.</li>
+<li><strong><code>NOFILENAMECHECK</code></strong> só deve ser usado <strong>duplicando para outro host</strong>. Num mesmo host, ele sobrescreveria os arquivos do banco de origem.</li>
+</ul>
+<p>O DUPLICATE termina com <code>Finished Duplicate Db</code> e a standby fica em <strong>MOUNTED</strong>.</p>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-duplicating-databases.html">Duplicating Databases (RMAN)</a></p>
+<h2>8. Ligar o transporte e o apply</h2>
+<p>No <strong>primário</strong>, libere o envio:</p>
+<pre><code class="language-sql">ALTER SYSTEM SET log_archive_dest_state_2=ENABLE SCOPE=BOTH;
+ALTER SYSTEM ARCHIVE LOG CURRENT;
+</code></pre>
+<p>Na <strong>standby</strong> (conectado no <code>CDB$ROOT</code>), inicie o Redo Apply em segundo plano. Desde a 12.1 esse comando já usa o <strong>real-time apply</strong>, aplicando o redo enquanto ele chega no standby redo log; a cláusula <code>USING CURRENT LOGFILE</code> está <em>deprecated</em> e não é mais necessária.</p>
+<pre><code class="language-sql">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+</code></pre>
+<p>Valide na standby com a <code>V$DATAGUARD_PROCESS</code>. A Oracle recomenda essa visão no lugar da <code>V$MANAGED_STANDBY</code>, que está <strong>descontinuada</strong> desde a 12.2.</p>
+<pre><code class="language-sql">SELECT role, thread#, sequence#, action FROM v$dataguard_process;
+
+SELECT name, value FROM v$dataguard_stats
+WHERE  name IN (&#39;transport lag&#39;, &#39;apply lag&#39;);
+
+SELECT * FROM v$archive_gap;
+</code></pre>
+<ul>
+<li><strong><code>recovery logmerger</code> com <code>APPLYING_LOG</code></strong> indica que o redo está sendo aplicado.</li>
+<li><strong><code>v$archive_gap</code></strong> deve voltar <strong>vazia</strong>.</li>
+</ul>
+<p>Ligue também o <strong>Flashback na standby</strong>. A Oracle <strong>recomenda o Flashback Database em todos os bancos</strong> da configuração: sem ele, um banco desabilitado depois de um failover não pode ser reinstaurado (<code>REINSTATE</code>) e precisa ser recriado.</p>
+<pre><code class="language-sql">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+ALTER DATABASE FLASHBACK ON;
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/using-data-guard-broker-to-manage-switchovers-failovers.html">Switchovers and Failovers (Broker)</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-physical-standby-databases.html">Managing Physical Standby Databases</a></p>
+<h2>9. Data Guard num CDB: e a PDB <code>dbprod</code>?</h2>
+<p>Num ambiente multitenant, a documentação deixa claro:</p>
+<ul>
+<li><strong>O papel é do CDB inteiro.</strong> As PDBs não têm papel próprio: um switchover ou failover troca o papel do CDB com todas as PDBs.</li>
+<li><strong><code>RECOVER MANAGED STANDBY</code> só funciona no root.</strong> Não é permitido dentro de uma PDB.</li>
+<li>Com <code>STANDBY_FILE_MANAGEMENT=AUTO</code>, datafiles e <strong>PDBs novas</strong> criadas no primário são criadas na standby automaticamente.</li>
+</ul>
+<p>Para conferir a PDB na standby, conectado no root:</p>
+<pre><code class="language-sql">SHOW PDBS
+SELECT con_id, name, open_mode FROM v$pdbs;
+</code></pre>
+<p>A <code>DBPROD</code> aparece <strong>MOUNTED</strong>, como o resto da standby. Abri-la em <strong>READ ONLY com o apply ligado</strong> é o recurso <strong>Active Data Guard</strong>, que exige licença própria.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html">Redo Apply Services</a></p>
+<h2>10. Registrar a standby no Grid (Oracle Restart)</h2>
+<p>Sem esse registro, a standby não sobe sozinha depois de um reboot do servidor.</p>
+<pre><code class="language-bash">srvctl add database -db cdbprd_stby -dbname cdbprd -instance cdbprd \
+  -oraclehome /u01/app/oracle/product/19c/dbhome_1 \
+  -spfile /u01/app/oracle/product/19c/dbhome_1/dbs/spfilecdbprd.ora \
+  -pwfile /u01/app/oracle/product/19c/dbhome_1/dbs/orapwcdbprd \
+  -role PHYSICAL_STANDBY -startoption MOUNT -stopoption IMMEDIATE \
+  -diskgroup &quot;DATA,RECO&quot;
+
+srvctl stop database -db cdbprd_stby
+srvctl start database -db cdbprd_stby
+</code></pre>
+<h2>11. Data Guard Broker</h2>
+<h3>11.1 Limpar o destino de redo remoto</h3>
+<p>Antes de adicionar a standby à configuração, a documentação exige <strong>limpar o <code>LOG_ARCHIVE_DEST_n</code> remoto da standby</strong>; caso contrário dá <code>ORA-16698</code>. No primário ela diz que o destino pode ficar como está, mas eu prefiro limpar nos dois, para o Broker assumir o transporte sozinho:</p>
+<pre><code class="language-sql">ALTER SYSTEM SET log_archive_dest_2=&#39;&#39; SCOPE=BOTH;
+</code></pre>
+<h3>11.2 Arquivos do Broker e start (nos dois)</h3>
+<p>O Broker exige <strong>spfile</strong>. Os arquivos de configuração só podem ser alterados com o <strong>Broker parado</strong>, então defina-os <strong>antes</strong> do <code>DG_BROKER_START</code>:</p>
+<pre><code class="language-sql">-- primário
+ALTER SYSTEM SET dg_broker_config_file1=&#39;+DATA/CDBPRD/dr1cdbprd.dat&#39; SCOPE=BOTH;
+ALTER SYSTEM SET dg_broker_config_file2=&#39;+RECO/CDBPRD/dr2cdbprd.dat&#39;  SCOPE=BOTH;
+ALTER SYSTEM SET dg_broker_start=TRUE SCOPE=BOTH;
+
+-- standby
+ALTER SYSTEM SET dg_broker_config_file1=&#39;+DATA/CDBPRD_STBY/dr1cdbprd_stby.dat&#39; SCOPE=BOTH;
+ALTER SYSTEM SET dg_broker_config_file2=&#39;+RECO/CDBPRD_STBY/dr2cdbprd_stby.dat&#39;  SCOPE=BOTH;
+ALTER SYSTEM SET dg_broker_start=TRUE SCOPE=BOTH;
+</code></pre>
+<h3>11.3 Criar e habilitar a configuração (no primário)</h3>
+<pre><code>dgmgrl sys@CDBPRD_DGMGRL
+
+CREATE CONFIGURATION &#39;DG_CDBPRD&#39; AS
+  PRIMARY DATABASE IS &#39;cdbprd&#39;
+  CONNECT IDENTIFIER IS &#39;CDBPRD_DGMGRL&#39;;
+
+ADD DATABASE &#39;cdbprd_stby&#39; AS
+  CONNECT IDENTIFIER IS &#39;CDBPRD_STBY_DGMGRL&#39;
+  MAINTAINED AS PHYSICAL;
+
+EDIT DATABASE &#39;cdbprd&#39; SET PROPERTY StaticConnectIdentifier =
+  &#39;(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=srv-lab-ora-01)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=CDBPRD_DGMGRL)(INSTANCE_NAME=cdbprd)(SERVER=DEDICATED)))&#39;;
+
+EDIT DATABASE &#39;cdbprd_stby&#39; SET PROPERTY StaticConnectIdentifier =
+  &#39;(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=srv-lab-ora-02)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=CDBPRD_STBY_DGMGRL)(INSTANCE_NAME=cdbprd)(SERVER=DEDICATED)))&#39;;
+
+ENABLE CONFIGURATION;
+</code></pre>
+<p>O <code>StaticConnectIdentifier</code> é o endereço que o Broker usa para <strong>subir e derrubar</strong> as instâncias, por exemplo num switchover. Ele precisa apontar para um serviço <strong>registrado estaticamente</strong>.</p>
+<h3>11.4 Validar</h3>
+<pre><code>SHOW CONFIGURATION;
+SHOW CONFIGURATION LAG;
+VALIDATE DATABASE &#39;cdbprd_stby&#39;;
+VALIDATE NETWORK CONFIGURATION FOR ALL;
+</code></pre>
+<p>O esperado é <code>Configuration Status: SUCCESS</code> e <code>Ready for Switchover: Yes</code>.</p>
+<p><img src="img/posts/dg19c-broker.svg" alt="Data Guard Broker: DMON, arquivos de configuração e conexão estática"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/examples-using-data-guard-broker-DGMGRL-utility.html">Examples Using DGMGRL</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-concepts.html">Broker Concepts</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-properties.html">Broker Properties</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DG_BROKER_CONFIG_FILEn.html">DG_BROKER_CONFIG_FILEn</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DG_BROKER_START.html">DG_BROKER_START</a></p>
+<h2>12. Script de verificação da standby</h2>
+<p>Uso este script no dia a dia para checar a saúde da standby em uma só execução: papel, processos, lag, recebido × aplicado, gap, SRLs, erros recentes e uso da FRA.</p>
+<pre><code class="language-sql">SET LINES 200 PAGES 100
+-- 1. Banco
+SELECT name, db_unique_name, database_role, open_mode, protection_mode,
+       switchover_status, flashback_on, force_logging
+FROM   v$database;
+
+-- 2. Processos (apply e recebimento)
+SELECT name, role, action, thread#, sequence#
+FROM   v$dataguard_process
+WHERE  role LIKE &#39;RFS%&#39; OR name LIKE &#39;MRP%&#39; OR role LIKE &#39;recovery%&#39;
+ORDER  BY role, thread#;
+
+-- 3. Lag
+SELECT name, value, time_computed
+FROM   v$dataguard_stats
+WHERE  name IN (&#39;transport lag&#39;, &#39;apply lag&#39;, &#39;apply finish time&#39;);
+
+-- 4. Recebido x aplicado
+SELECT thread#, MAX(sequence#) AS recebido,
+       MAX(CASE WHEN applied = &#39;YES&#39; THEN sequence# END) AS aplicado
+FROM   v$archived_log
+WHERE  resetlogs_change# = (SELECT resetlogs_change# FROM v$database)
+GROUP  BY thread#;
+
+-- 5. Gap (esperado: nenhuma linha)
+SELECT thread#, low_sequence#, high_sequence# FROM v$archive_gap;
+
+-- 6. Standby redo logs
+SELECT group#, thread#, sequence#, bytes/1024/1024 AS mb, status FROM v$standby_log;
+
+-- 7. Erros recentes do Data Guard
+SELECT timestamp, facility, severity, message
+FROM   v$dataguard_status
+WHERE  severity IN (&#39;Error&#39;, &#39;Fatal&#39;)
+ORDER  BY timestamp DESC
+FETCH  FIRST 10 ROWS ONLY;
+
+-- 8. Uso da FRA
+SELECT name, ROUND(space_used/space_limit*100, 1) AS pct_usado FROM v$recovery_file_dest;
+</code></pre>
+<h2>13. Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Erro / sintoma</th>
+<th>Correção</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ORA-01017</code> / <code>ORA-16191</code></td>
+<td>Recopiar o password file do primário e conferir o <code>md5sum</code></td>
+</tr>
+<tr>
+<td><code>ORA-01017</code> mesmo no primário via TNS</td>
+<td><code>SID_NAME</code> com a caixa errada no <code>listener.ora</code> (no Linux o SID diferencia maiúsculas)</td>
+</tr>
+<tr>
+<td><code>ORA-12514</code> / <code>ORA-12528</code></td>
+<td>Entrada estática + <code>lsnrctl reload</code>; <code>(UR = A)</code> no tnsnames</td>
+</tr>
+<tr>
+<td><code>ORA-09925</code></td>
+<td>Criar o diretório <code>adump</code> na standby</td>
+</tr>
+<tr>
+<td><code>ORA-16057</code></td>
+<td><code>DB_UNIQUE_NAME</code> da standby ausente no <code>DG_CONFIG</code> do primário</td>
+</tr>
+<tr>
+<td><code>ORA-01153</code></td>
+<td>O apply já está rodando: <code>CANCEL</code> e iniciar de novo</td>
+</tr>
+<tr>
+<td><code>ORA-16698</code></td>
+<td><code>LOG_ARCHIVE_DEST_n</code> remoto ainda definido na standby: limpar antes de adicionar no Broker</td>
+</tr>
+<tr>
+<td>Standby não sobe após reboot</td>
+<td>Registrar no Oracle Restart (<code>srvctl add database</code>)</td>
+</tr>
+</tbody></table>
+<h2>Lições aprendidas</h2>
+<ul>
+<li><strong>O SID diferencia maiúsculas no Linux.</strong> Uma instância <code>cdbprd</code> com <code>SID_NAME = CDBPRD</code> no listener aponta para uma instância que não existe e gera <code>ORA-01017</code>.</li>
+<li><strong>Mantenha a mesma versão (RU) nos dois lados.</strong> A documentação exige a mesma release do Enterprise Edition no primário e nas standbys; RUs diferentes só se justificam temporariamente, durante um <em>standby-first patching</em>.</li>
+<li><strong>Password file:</strong> sempre copie do primário e compare o <code>md5sum</code>.</li>
+<li><strong>Valide a conectividade nos dois sentidos antes do DUPLICATE.</strong> Isso economiza horas de troubleshooting.</li>
+<li><strong><code>DEST_2</code> em DEFER</strong> até a standby existir mantém o alert log limpo.</li>
+<li><strong>OMF simplifica:</strong> sem <code>*_FILE_NAME_CONVERT</code>, os arquivos vão para o diskgroup certo sozinhos.</li>
+</ul>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Data Guard Concepts and Administration</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/getting-started-with-oracle-data-guard.html">Getting Started with Oracle Data Guard</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/creating-oracle-data-guard-physical-standby.html">Creating a Physical Standby Database</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html">Redo Transport Services</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html">Redo Apply Services</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-physical-standby-databases.html">Managing Physical Standby Databases</a></li>
+</ul>
+<p><strong>Data Guard Broker</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-concepts.html">Broker Concepts</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/examples-using-data-guard-broker-DGMGRL-utility.html">Examples Using DGMGRL</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-properties.html">Broker Properties</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/using-data-guard-broker-to-manage-switchovers-failovers.html">Switchovers and Failovers</a></li>
+</ul>
+<p><strong>Licenciamento</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dblic/Licensing-Information.html">Database Licensing Information User Manual</a></li>
+</ul>
+<p><strong>Backup and Recovery e Reference</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-duplicating-databases.html">Duplicating Databases (RMAN)</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DG_BROKER_CONFIG_FILEn.html">DG_BROKER_CONFIG_FILEn</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DG_BROKER_START.html">DG_BROKER_START</a></li>
+</ul>
+<hr>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js?v=202610142159"></script><script src="layout.js?v=202610142159"></script><script src="post.js"></script></body></html>
