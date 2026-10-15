@@ -26,7 +26,7 @@
     <text x="74" y="350" font-size="13" fill="#b8c2bb">FLASHBACK ON</text>
     <text x="74" y="374" font-size="13" fill="#b8c2bb">SRLs (p/ switchover)</text>
     <text x="74" y="398" font-size="13" fill="#b8c2bb">DG_CONFIG definido</text>
-    <text x="60" y="476" font-size="13" fill="#7f9686">LOG_ARCHIVE_DEST_2 = SERVICE=CDBPRD_STBY_TNS ASYNC</text>
+    <text x="60" y="476" font-size="13" fill="#7f9686">LOG_ARCHIVE_DEST_2 = SERVICE=CDBPRD_STBY ASYNC</text>
   </g>
 
   <!-- transporte -->
