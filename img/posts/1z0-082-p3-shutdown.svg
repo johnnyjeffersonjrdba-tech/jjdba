@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" font-family="Consolas, 'JetBrains Mono', monospace">
+  <rect width="1200" height="600" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Os quatro modos de SHUTDOWN</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">Nenhum aceita novas conexões. Do mais paciente ao mais drástico:</text>
+
+  <!-- régua -->
+  <defs><linearGradient id="r" x1="0" x2="1"><stop offset="0" stop-color="#39ff88"/><stop offset=".66" stop-color="#ffb02e"/><stop offset="1" stop-color="#ff5f56"/></linearGradient></defs>
+  <rect x="40" y="112" width="1120" height="8" rx="4" fill="url(#r)"/>
+  <text x="40" y="142" font-size="13" fill="#39ff88">espera mais</text>
+  <text x="1160" y="142" text-anchor="end" font-size="13" fill="#ff5f56">não espera nada</text>
+
+  <g font-size="15">
+    <rect x="40" y="160" width="265" height="320" rx="12" fill="#121a15" stroke="#39ff88" stroke-width="2"/>
+    <text x="58" y="196" font-size="20" font-weight="700" fill="#39ff88">NORMAL</text>
+    <text x="58" y="218" font-size="13" fill="#7f9686">(padrão)</text>
+    <text x="58" y="256" fill="#e6ede8">espera TODOS os</text><text x="58" y="278" fill="#e6ede8">usuários saírem</text>
+    <text x="58" y="318" fill="#b8c2bb">uma sessão esquecida</text><text x="58" y="340" fill="#b8c2bb">segura o shutdown</text>
+    <text x="58" y="400" fill="#39ff88">✔ consistente</text><text x="58" y="424" fill="#39ff88">✔ sem recovery depois</text>
+    <text x="58" y="458" font-size="13" fill="#7f9686">timeout: 1 hora</text>
+
+    <rect x="325" y="160" width="265" height="320" rx="12" fill="#121a15" stroke="#9cdb6a" stroke-width="2"/>
+    <text x="343" y="196" font-size="20" font-weight="700" fill="#9cdb6a">TRANSACTIONAL</text>
+    <text x="343" y="256" fill="#e6ede8">espera só as</text><text x="343" y="278" fill="#e6ede8">TRANSAÇÕES</text>
+    <text x="343" y="318" fill="#b8c2bb">sem transação nova;</text><text x="343" y="340" fill="#b8c2bb">ociosos são desconectados</text>
+    <text x="343" y="400" fill="#39ff88">✔ consistente</text><text x="343" y="424" fill="#39ff88">✔ sem recovery depois</text>
+    <text x="343" y="458" font-size="13" fill="#7f9686">timeout: 1 hora</text>
+
+    <rect x="610" y="160" width="265" height="320" rx="12" fill="#121a15" stroke="#ffb02e" stroke-width="2"/>
+    <text x="628" y="196" font-size="20" font-weight="700" fill="#ffb02e">IMMEDIATE</text>
+    <text x="628" y="256" fill="#e6ede8">interrompe o SQL,</text><text x="628" y="278" fill="#e6ede8">desconecta todos</text>
+    <text x="628" y="318" fill="#b8c2bb">faz ROLLBACK das</text><text x="628" y="340" fill="#b8c2bb">transações ativas</text>
+    <text x="628" y="400" fill="#39ff88">✔ consistente</text><text x="628" y="424" fill="#39ff88">✔ sem recovery depois</text>
+    <text x="628" y="458" font-size="13" fill="#7f9686">o mais usado no dia a dia</text>
+
+    <rect x="895" y="160" width="265" height="320" rx="12" fill="#ff5f56" fill-opacity=".06" stroke="#ff5f56" stroke-width="2"/>
+    <text x="913" y="196" font-size="20" font-weight="700" fill="#ff5f56">ABORT</text>
+    <text x="913" y="256" fill="#e6ede8">termina tudo</text><text x="913" y="278" fill="#e6ede8">na hora</text>
+    <text x="913" y="318" fill="#b8c2bb">sem rollback, sem</text><text x="913" y="340" fill="#b8c2bb">fechar os arquivos</text>
+    <text x="913" y="400" fill="#ff5f56">✘ não consistente</text><text x="913" y="424" fill="#ff5f56">→ instance recovery</text>
+    <text x="913" y="446" fill="#ff5f56">   automática no STARTUP</text>
+  </g>
+  <rect x="40" y="504" width="1120" height="62" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="64" y="532" font-size="15" fill="#e6ede8">ABORT não perde COMMIT: o redo das transações confirmadas já está no online redo log.</text>
+  <text x="64" y="554" font-size="15" fill="#7f9686">STARTUP FORCE = SHUTDOWN ABORT + STARTUP</text>
+  <text x="1160" y="590" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>

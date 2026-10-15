@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e6ede8"/></marker></defs>
+  <rect width="1200" height="560" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">STARTUP: três estágios, uma camada de cada vez</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">STARTUP sem opção = STARTUP OPEN (faz os três)</text>
+
+  <g font-size="16">
+    <!-- NOMOUNT -->
+    <rect x="40" y="128" width="340" height="300" rx="12" fill="#121a15" stroke="#5fd3ff" stroke-width="2.5"/>
+    <text x="60" y="164" font-size="22" font-weight="700" fill="#5fd3ff">1. NOMOUNT</text>
+    <text x="60" y="192" font-size="14" fill="#7f9686">STATUS = STARTED</text>
+    <text x="60" y="232" fill="#e6ede8">lê: parameter file</text>
+    <text x="78" y="256" fill="#b8c2bb">(spfile → pfile)</text>
+    <text x="60" y="292" fill="#e6ede8">aloca a SGA</text>
+    <text x="60" y="320" fill="#e6ede8">sobe os processos</text>
+    <text x="60" y="348" fill="#e6ede8">abre o alert log</text>
+    <text x="60" y="400" font-size="14" fill="#7f9686">uso: CREATE DATABASE,</text>
+    <text x="60" y="420" font-size="14" fill="#7f9686">recriar o control file</text>
+
+    <path d="M386 278 H422" stroke="#e6ede8" stroke-width="2.5" marker-end="url(#w)"/>
+
+    <!-- MOUNT -->
+    <rect x="430" y="128" width="340" height="300" rx="12" fill="#121a15" stroke="#ffb02e" stroke-width="2.5"/>
+    <text x="450" y="164" font-size="22" font-weight="700" fill="#ffb02e">2. MOUNT</text>
+    <text x="450" y="192" font-size="14" fill="#7f9686">STATUS = MOUNTED</text>
+    <text x="450" y="232" fill="#e6ede8">abre: control files</text>
+    <text x="468" y="256" fill="#b8c2bb">(via CONTROL_FILES)</text>
+    <text x="450" y="292" fill="#e6ede8">descobre datafiles</text>
+    <text x="450" y="320" fill="#e6ede8">e redo logs,</text>
+    <text x="450" y="348" fill="#e6ede8">mas NÃO os abre</text>
+    <text x="450" y="400" font-size="14" fill="#7f9686">uso: ARCHIVELOG,</text>
+    <text x="450" y="420" font-size="14" fill="#7f9686">recovery completo</text>
+
+    <path d="M776 278 H812" stroke="#e6ede8" stroke-width="2.5" marker-end="url(#w)"/>
+
+    <!-- OPEN -->
+    <rect x="820" y="128" width="340" height="300" rx="12" fill="#39ff88" fill-opacity=".08" stroke="#39ff88" stroke-width="2.5"/>
+    <text x="840" y="164" font-size="22" font-weight="700" fill="#39ff88">3. OPEN</text>
+    <text x="840" y="192" font-size="14" fill="#7f9686">STATUS = OPEN</text>
+    <text x="840" y="232" fill="#e6ede8">abre: datafiles</text>
+    <text x="840" y="260" fill="#e6ede8">e online redo logs</text>
+    <text x="840" y="296" fill="#e6ede8">instance recovery</text>
+    <text x="840" y="320" fill="#e6ede8">se o fechamento</text>
+    <text x="840" y="344" fill="#e6ede8">não foi consistente</text>
+    <text x="840" y="400" font-size="14" fill="#7f9686">uso: operação normal;</text>
+    <text x="840" y="420" font-size="14" fill="#7f9686">dicionário disponível</text>
+  </g>
+  <rect x="40" y="456" width="1120" height="70" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="64" y="486" font-size="15" fill="#e6ede8">Avançar com a instância no ar: STARTUP NOMOUNT → ALTER DATABASE MOUNT → ALTER DATABASE OPEN</text>
+  <text x="64" y="510" font-size="15" fill="#7f9686">SHUTDOWN faz o caminho inverso: fecha (datafiles/redo) → desmonta (control files) → encerra a instância</text>
+  <text x="1160" y="548" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>

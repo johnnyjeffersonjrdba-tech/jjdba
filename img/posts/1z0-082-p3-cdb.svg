@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" font-family="Consolas, 'JetBrains Mono', monospace">
+  <rect width="1200" height="500" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Depois do STARTUP de um CDB</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">O root abre; as PDBs ficam montadas até alguém abri-las (ou terem estado salvo)</text>
+  <g font-size="16">
+    <rect x="40" y="120" width="260" height="210" rx="12" fill="#39ff88" fill-opacity=".08" stroke="#39ff88" stroke-width="2.5"/>
+    <text x="60" y="156" font-size="19" font-weight="700" fill="#e6ede8">CDB$ROOT</text>
+    <text x="60" y="200" font-size="18" font-weight="700" fill="#39ff88">READ WRITE</text>
+    <text x="60" y="250" fill="#b8c2bb">aberto pelo</text><text x="60" y="272" fill="#b8c2bb">STARTUP no root</text>
+
+    <rect x="320" y="120" width="260" height="210" rx="12" fill="#121a15" stroke="#ffb02e" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="340" y="156" font-size="19" font-weight="700" fill="#e6ede8">PDB$SEED</text>
+    <text x="340" y="200" font-size="18" font-weight="700" fill="#ffb02e">READ ONLY</text>
+    <text x="340" y="250" fill="#b8c2bb">modelo para criar</text><text x="340" y="272" fill="#b8c2bb">novas PDBs</text>
+
+    <rect x="600" y="120" width="260" height="210" rx="12" fill="#121a15" stroke="#7f9686" stroke-width="2"/>
+    <text x="620" y="156" font-size="19" font-weight="700" fill="#e6ede8">PDB1</text>
+    <text x="620" y="200" font-size="18" font-weight="700" fill="#7f9686">MOUNTED</text>
+    <text x="620" y="250" fill="#b8c2bb">sem estado salvo:</text><text x="620" y="272" fill="#b8c2bb">só DBAs; usuários</text><text x="620" y="294" fill="#b8c2bb">ainda não conectam</text>
+
+    <rect x="880" y="120" width="280" height="210" rx="12" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="900" y="156" font-size="19" font-weight="700" fill="#e6ede8">PDB2</text>
+    <text x="900" y="200" font-size="18" font-weight="700" fill="#5fd3ff">READ WRITE</text>
+    <text x="900" y="250" fill="#b8c2bb">tinha SAVE STATE</text><text x="900" y="272" fill="#b8c2bb">em READ WRITE:</text><text x="900" y="294" fill="#b8c2bb">volta aberta sozinha</text>
+  </g>
+  <rect x="40" y="356" width="1120" height="110" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <g font-size="15">
+    <text x="64" y="388" fill="#e6ede8">ALTER PLUGGABLE DATABASE pdb1 OPEN;          → abre uma PDB</text>
+    <text x="64" y="414" fill="#e6ede8">ALTER PLUGGABLE DATABASE pdb1 SAVE STATE;    → guarda o modo para o próximo restart</text>
+    <text x="64" y="440" fill="#7f9686">SHUTDOWN dentro da PDB fecha a PDB · DISCARD STATE: volta sempre montada</text>
+  </g>
+  <text x="1160" y="488" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>

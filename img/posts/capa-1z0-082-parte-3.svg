@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#39ff88" stroke-opacity=".06"/></pattern>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#39ff88"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5f56"/></marker>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#grid)"/>
+  <text x="48" y="62" font-size="20" fill="#39ff88">GUIA 1Z0-082 · PARTE 3</text>
+  <text x="48" y="112" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="#fff">STARTUP e SHUTDOWN no Oracle</text>
+  <text x="48" y="146" font-size="18" fill="#7f9686">estágios · modos de shutdown · CDB e PDBs · SYSDBA × SYSOPER</text>
+
+  <!-- escada de subida -->
+  <g font-size="20" font-weight="700">
+    <rect x="48" y="420" width="250" height="90" rx="10" fill="#5fd3ff" fill-opacity=".14" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="70" y="458" fill="#5fd3ff">NOMOUNT</text><text x="70" y="488" font-size="15" font-weight="400" fill="#b8c2bb">parameter file</text>
+    <rect x="318" y="320" width="250" height="90" rx="10" fill="#ffb02e" fill-opacity=".14" stroke="#ffb02e" stroke-width="2"/>
+    <text x="340" y="358" fill="#ffb02e">MOUNT</text><text x="340" y="388" font-size="15" font-weight="400" fill="#b8c2bb">control files</text>
+    <rect x="588" y="220" width="250" height="90" rx="10" fill="#39ff88" fill-opacity=".14" stroke="#39ff88" stroke-width="2"/>
+    <text x="610" y="258" fill="#39ff88">OPEN</text><text x="610" y="288" font-size="15" font-weight="400" fill="#b8c2bb">datafiles + redo</text>
+  </g>
+  <path d="M175 410 V365 H310" fill="none" stroke="#39ff88" stroke-width="3" marker-end="url(#g)"/>
+  <path d="M445 310 V265 H580" fill="none" stroke="#39ff88" stroke-width="3" marker-end="url(#g)"/>
+  <text x="60" y="540" font-size="16" fill="#39ff88">STARTUP ↗</text>
+
+  <!-- shutdown modes -->
+  <g font-size="17">
+    <rect x="900" y="200" width="332" height="330" rx="12" fill="#0b0f0c" stroke="#1c2a21" stroke-width="2"/>
+    <text x="922" y="236" font-weight="700" fill="#e6ede8">SHUTDOWN</text>
+    <text x="922" y="282" fill="#39ff88">NORMAL</text><text x="1210" y="282" text-anchor="end" font-size="14" fill="#7f9686">espera usuários</text>
+    <text x="922" y="326" fill="#9cdb6a">TRANSACTIONAL</text><text x="1210" y="326" text-anchor="end" font-size="14" fill="#7f9686">espera transações</text>
+    <text x="922" y="370" fill="#ffb02e">IMMEDIATE</text><text x="1210" y="370" text-anchor="end" font-size="14" fill="#7f9686">rollback</text>
+    <text x="922" y="414" fill="#ff5f56">ABORT</text><text x="1210" y="414" text-anchor="end" font-size="14" fill="#7f9686">recovery depois</text>
+    <path d="M922 450 H1205" stroke="#ff5f56" stroke-width="3" marker-end="url(#r)"/>
+    <text x="922" y="490" font-size="14" fill="#7f9686">do mais paciente ao mais drástico</text>
+  </g>
+
+  <rect x="48" y="596" width="1184" height="76" rx="10" fill="#0b0f0c" stroke="#1c2a21"/>
+  <text x="70" y="628" font-size="15" fill="#e6ede8">STARTUP sem opção = OPEN · SHUTDOWN sem opção = NORMAL · STARTUP FORCE = ABORT + STARTUP</text>
+  <text x="70" y="654" font-size="15" fill="#7f9686">num CDB, o root abre e as PDBs ficam montadas · SAVE STATE guarda o modo da PDB</text>
+  <text x="1232" y="706" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>
