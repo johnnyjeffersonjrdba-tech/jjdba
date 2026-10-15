@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f9686"/></marker></defs>
+  <rect width="1200" height="560" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Dicionário de dados</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">Dono: SYS · mora na tablespace SYSTEM · só disponível com o banco OPEN</text>
+
+  <!-- camadas -->
+  <g font-size="15">
+    <rect x="40" y="120" width="460" height="80" rx="10" fill="#121a15" stroke="#7f9686"/>
+    <text x="60" y="152" font-weight="700" fill="#e6ede8">Base tables (SYS)</text>
+    <text x="60" y="178" fill="#b8c2bb">OBJ$ · TAB$ · USER$ · TS$ — só o Oracle grava</text>
+    <path d="M270 200 V232" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="40" y="236" width="460" height="80" rx="10" fill="#121a15" stroke="#39ff88"/>
+    <text x="60" y="268" font-weight="700" fill="#39ff88">Views do dicionário (SYS)</text>
+    <text x="60" y="294" fill="#b8c2bb">decodificam as base tables (catalog.sql)</text>
+    <path d="M270 316 V348" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="40" y="352" width="460" height="80" rx="10" fill="#121a15" stroke="#5fd3ff"/>
+    <text x="60" y="384" font-weight="700" fill="#5fd3ff">Você consulta</text>
+    <text x="60" y="410" fill="#b8c2bb">DICT / DICT_COLUMNS = índice do dicionário</text>
+    <rect x="40" y="452" width="460" height="64" rx="10" fill="#0b0f0c" stroke="#7f9686" stroke-dasharray="6 5"/>
+    <text x="60" y="480" fill="#b8c2bb">data dictionary cache (shared pool)</text>
+    <text x="60" y="502" font-size="13" fill="#7f9686">linhas do dicionário em memória p/ o parse</text>
+  </g>
+
+  <!-- prefixos aninhados -->
+  <rect x="560" y="120" width="600" height="396" rx="14" fill="#ffb02e" fill-opacity=".06" stroke="#ffb02e" stroke-width="2"/>
+  <text x="580" y="152" font-size="18" font-weight="700" fill="#ffb02e">CDB_  (root: todas as PDBs abertas + CON_ID)</text>
+  <rect x="590" y="172" width="540" height="320" rx="12" fill="#39ff88" fill-opacity=".06" stroke="#39ff88" stroke-width="2"/>
+  <text x="610" y="204" font-size="18" font-weight="700" fill="#39ff88">DBA_  (todo o banco / container)</text>
+  <text x="610" y="228" font-size="13" fill="#7f9686">SYSDBA · SELECT ANY DICTIONARY · SELECT_CATALOG_ROLE</text>
+  <rect x="620" y="246" width="480" height="220" rx="10" fill="#5fd3ff" fill-opacity=".07" stroke="#5fd3ff" stroke-width="2"/>
+  <text x="640" y="278" font-size="18" font-weight="700" fill="#5fd3ff">ALL_  (o que você acessa)</text>
+  <text x="640" y="302" font-size="13" fill="#7f9686">seus objetos + os concedidos (roles habilitadas)</text>
+  <rect x="650" y="322" width="420" height="120" rx="10" fill="#121a15" stroke="#e6ede8" stroke-width="2"/>
+  <text x="670" y="356" font-size="18" font-weight="700" fill="#e6ede8">USER_  (o seu schema)</text>
+  <text x="670" y="384" font-size="13" fill="#b8c2bb">normalmente sem a coluna OWNER</text>
+  <text x="670" y="410" font-size="13" fill="#b8c2bb">qualquer usuário consulta</text>
+  <text x="1140" y="540" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f9686"/></marker></defs>
+  <rect width="1200" height="560" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Visões de performance dinâmica (V$)</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">Estado vivo da instância · sem leitura consistente · zeram a cada STARTUP</text>
+
+  <g font-size="15">
+    <rect x="40" y="124" width="330" height="70" rx="10" fill="#121a15" stroke="#7f9686"/>
+    <text x="60" y="154" font-weight="700" fill="#e6ede8">X$  (fixed tables)</text>
+    <text x="60" y="178" font-size="13" fill="#b8c2bb">memória e control file · internas</text>
+    <path d="M370 159 H416" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="420" y="124" width="330" height="70" rx="10" fill="#121a15" stroke="#ffb02e"/>
+    <text x="440" y="154" font-weight="700" fill="#ffb02e">V_$ / GV_$  (views do SYS)</text>
+    <text x="440" y="178" font-size="13" fill="#b8c2bb">as views de verdade</text>
+    <path d="M750 159 H796" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="800" y="124" width="360" height="70" rx="10" fill="#39ff88" fill-opacity=".1" stroke="#39ff88"/>
+    <text x="820" y="154" font-weight="700" fill="#39ff88">V$ / GV$  (public synonyms)</text>
+    <text x="820" y="178" font-size="13" fill="#b8c2bb">o que você consulta · GV$ + INST_ID</text>
+  </g>
+
+  <text x="40" y="244" font-size="18" font-weight="700" fill="#e6ede8">O que responde em cada estágio</text>
+  <g font-size="15">
+    <rect x="40" y="262" width="360" height="230" rx="12" fill="#121a15" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="60" y="296" font-size="18" font-weight="700" fill="#5fd3ff">NOMOUNT</text>
+    <text x="60" y="320" font-size="13" fill="#7f9686">V$ que leem da memória</text>
+    <text x="60" y="356" fill="#e6ede8">V$INSTANCE</text><text x="60" y="382" fill="#e6ede8">V$PARAMETER</text><text x="60" y="408" fill="#e6ede8">V$SGA</text><text x="60" y="434" fill="#e6ede8">V$DIAG_INFO</text>
+    <text x="60" y="474" font-size="13" fill="#ff5f56">V$DATABASE → ORA-01507</text>
+
+    <rect x="420" y="262" width="360" height="230" rx="12" fill="#121a15" stroke="#ffb02e" stroke-width="2"/>
+    <text x="440" y="296" font-size="18" font-weight="700" fill="#ffb02e">MOUNT</text>
+    <text x="440" y="320" font-size="13" fill="#7f9686">+ V$ do control file</text>
+    <text x="440" y="356" fill="#e6ede8">V$DATABASE</text><text x="440" y="382" fill="#e6ede8">V$DATAFILE</text><text x="440" y="408" fill="#e6ede8">V$LOG</text><text x="440" y="434" fill="#e6ede8">V$CONTROLFILE</text>
+    <text x="440" y="474" font-size="13" fill="#ff5f56">DBA_ → ORA-01219</text>
+
+    <rect x="800" y="262" width="360" height="230" rx="12" fill="#39ff88" fill-opacity=".06" stroke="#39ff88" stroke-width="2"/>
+    <text x="820" y="296" font-size="18" font-weight="700" fill="#39ff88">OPEN</text>
+    <text x="820" y="320" font-size="13" fill="#7f9686">+ dicionário de dados</text>
+    <text x="820" y="356" fill="#e6ede8">DBA_ / ALL_ / USER_</text><text x="820" y="382" fill="#e6ede8">CDB_</text><text x="820" y="408" fill="#e6ede8">DICT</text>
+    <text x="820" y="474" font-size="13" fill="#39ff88">tudo disponível</text>
+  </g>
+  <text x="40" y="530" font-size="15" fill="#7f9686">DBA_ = o que o banco É (persistente) · V$ = o que a instância está FAZENDO agora</text>
+  <text x="1160" y="548" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>

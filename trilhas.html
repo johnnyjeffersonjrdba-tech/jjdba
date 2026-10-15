@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610142237">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trilhas de Estudo</title><link rel="stylesheet" href="style.css?v=202610151103">
 <style>
 .carrossel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 14px}
 .carrossel::-webkit-scrollbar{height:6px}.carrossel::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
@@ -25,7 +25,7 @@
   <div class="carrossel" id="car"></div>
   <div id="det"></div>
 </main>
-<script src="posts.js?v=202610142237"></script><script src="layout.js?v=202610142237"></script><script>
+<script src="posts.js?v=202610151103"></script><script src="layout.js?v=202610151103"></script><script>
 let TRILHAS = [];
 Promise.all([dados, fetch('data/trilhas.json', { cache: 'no-cache' }).then(r => r.json()).then(t => TRILHAS = t)]).then(() => {
   const byId = Object.fromEntries(visiveis.map(p => [p.id, p]));

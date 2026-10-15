@@ -1,0 +1,342 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>Dicionário de dados, V$ e ADR no Oracle (1Z0-082 · Parte 4) · JJ DBA</title>
+<meta name="description" content="USER_, ALL_, DBA_ e CDB_; as visões V$ e o que responde em cada estágio; ADR, alert log, trace files, incidentes e ADRCI — com diagramas, laboratório e a documentação oficial do 19c.">
+<meta name="keywords" content="Oracle, DBA, DBA, CERTIFICAÇÃO">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/dicionario-vdollar-adr-oracle.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Dicionário de dados, V$ e ADR no Oracle (1Z0-082 · Parte 4)">
+<meta property="og:description" content="USER_, ALL_, DBA_ e CDB_; as visões V$ e o que responde em cada estágio; ADR, alert log, trace files, incidentes e ADRCI — com diagramas, laboratório e a documentação oficial do 19c.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/dicionario-vdollar-adr-oracle.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/dicionario-vdollar-adr-oracle.png">
+<meta property="article:published_time" content="2026-10-15">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dicionário de dados, V$ e ADR no Oracle (1Z0-082 · Parte 4)">
+<meta name="twitter:description" content="USER_, ALL_, DBA_ e CDB_; as visões V$ e o que responde em cada estágio; ADR, alert log, trace files, incidentes e ADRCI — com diagramas, laboratório e a documentação oficial do 19c.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/dicionario-vdollar-adr-oracle.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Dicionário de dados, V$ e ADR no Oracle (1Z0-082 · Parte 4)","description":"USER_, ALL_, DBA_ e CDB_; as visões V$ e o que responde em cada estágio; ADR, alert log, trace files, incidentes e ADRCI — com diagramas, laboratório e a documentação oficial do 19c.","datePublished":"2026-10-15","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/dicionario-vdollar-adr-oracle.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/dicionario-vdollar-adr-oracle.html","inLanguage":"pt-BR","keywords":"DBA, CERTIFICAÇÃO","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css?v=202610151103"></head><body>
+<main class="wrap"><article id="a" data-id="dicionario-vdollar-adr-oracle" style="padding:32px 0"><span class="tag">Estudo</span><span class="meta">15 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>Dicionário de dados, V$ e ADR no Oracle (1Z0-082 · Parte 4)</h1><img class="capa-post" src="img/posts/capa-1z0-082-parte-4.svg" alt="Dicionário de dados, V$ e ADR no Oracle (1Z0-082 · Parte 4)"><span class="chip">DBA</span><span class="chip">CERTIFICAÇÃO</span>
+<p>Quarta parte do <strong>Guia 1Z0-082</strong>. Na <a href="posts/startup-shutdown-oracle.html">Parte 3</a> vimos como ligar e desligar a instância. Agora o assunto é <strong>onde o DBA busca informação</strong>: o <strong>dicionário de dados</strong> (<code>DBA_</code>, <code>ALL_</code>, <code>USER_</code>, <code>CDB_</code>), as <strong>visões de performance dinâmica</strong> (<code>V$</code>) e o <strong>ADR</strong>, onde ficam o alert log, os trace files e os incidentes.</p>
+<blockquote>
+<p>Cada afirmação técnica deste artigo foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>. Os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>1. O dicionário de dados</h2>
+<p class="topico-exame">Using Data Dictionary Views</p>
+
+<p>O dicionário de dados é o conjunto de tabelas e views <strong>somente leitura</strong> que guarda os <strong>metadados</strong> do banco: definição de cada objeto, usuários, privilégios, roles, espaço alocado, constraints e auditoria. O Oracle o consulta a cada SQL, para saber se o objeto existe e se você tem acesso, e o <strong>atualiza a cada DDL</strong>.</p>
+<p>Ele tem duas camadas:</p>
+<ul>
+<li><strong>Base tables</strong> (<code>OBJ$</code>, <code>TAB$</code>, <code>USER$</code>…): guardam os dados de forma normalizada. Só o próprio Oracle deve ler e gravar nelas.</li>
+<li><strong>Views do dicionário</strong> (<code>DBA_TABLES</code>, <code>ALL_USERS</code>…): decodificam essas tabelas. É o que DBAs e desenvolvedores consultam.</li>
+</ul>
+<p>O dono de tudo é o usuário <strong>SYS</strong>, e o dicionário fica na tablespace <strong>SYSTEM</strong>. Por isso ele <strong>só está disponível com o banco aberto</strong>. Para não ler o disco a cada parse, parte dele fica em memória no <strong>data dictionary cache</strong>, dentro da shared pool (Parte 1).</p>
+<p>Para descobrir &quot;qual view tem o que eu procuro&quot;, consulte a <strong><code>DICTIONARY</code></strong> (sinônimo <code>DICT</code>), que lista as views do dicionário com um comentário, e a <strong><code>DICT_COLUMNS</code></strong>, que descreve as colunas.</p>
+<p><img src="img/posts/1z0-082-p4-dicionario.svg" alt="Dicionário de dados: base tables, views e os prefixos USER_, ALL_, DBA_ e CDB_"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-dictionary-and-dynamic-performance-views.html">Data Dictionary and Dynamic Performance Views</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DICTIONARY.html">DICTIONARY</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DICT_COLUMNS.html">DICT_COLUMNS</a></p>
+<h2>2. USER_, ALL_ e DBA_</h2>
+<p class="topico-exame">Using Data Dictionary Views</p>
+
+<p>A maior parte das views vem em trios, com as mesmas colunas e escopos diferentes:</p>
+<table>
+<thead>
+<tr>
+<th>Prefixo</th>
+<th>Mostra</th>
+<th>Quem pode consultar</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>USER_</code></td>
+<td>Os objetos do <strong>seu</strong> schema</td>
+<td>Qualquer usuário</td>
+</tr>
+<tr>
+<td><code>ALL_</code></td>
+<td>Os objetos que você <strong>pode acessar</strong> (seus e os concedidos)</td>
+<td>Qualquer usuário</td>
+</tr>
+<tr>
+<td><code>DBA_</code></td>
+<td><strong>Todos</strong> os objetos do banco</td>
+<td>SYSDBA, <code>SELECT ANY DICTIONARY</code>, <code>SELECT_CATALOG_ROLE</code> ou grant direto</td>
+</tr>
+</tbody></table>
+<ul>
+<li>As <code>USER_</code> normalmente <strong>não têm a coluna <code>OWNER</code></strong>: o dono é quem consulta.</li>
+<li><code>ALL_</code> <strong>não</strong> quer dizer &quot;todos os objetos do banco&quot;; quer dizer os que <strong>você</strong> acessa.</li>
+<li>Nem todo trio está completo: existe <code>DBA_DATA_FILES</code>, mas não <code>USER_DATA_FILES</code>.</li>
+<li>Um usuário sem privilégio que consulta uma <code>DBA_</code> recebe <code>ORA-00942: table or view does not exist</code>: para ele, é como se a view não existisse.</li>
+<li>Os nomes ficam guardados em <strong>maiúsculas</strong>: <code>WHERE table_name = &#39;EMP&#39;</code>, e não <code>&#39;emp&#39;</code>.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-static-data-dictionary-views.html">About Static Data Dictionary Views</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-dictionary-and-dynamic-performance-views.html">Data Dictionary and Dynamic Performance Views</a></p>
+<h2>3. O dicionário num CDB: DBA_ × CDB_</h2>
+<p class="topico-exame">Using Data Dictionary Views</p>
+
+<p>Num CDB, a regra é:</p>
+<ul>
+<li><strong><code>DBA_</code> é local.</strong> No root mostra só o root; numa PDB, só aquela PDB.</li>
+<li><strong><code>CDB_</code></strong> tem a coluna a mais <strong><code>CON_ID</code></strong>. Consultada do root, traz o root e as PDBs <strong>abertas</strong>; consultada de dentro de uma PDB, se comporta como a <code>DBA_</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>No root</th>
+<th>Numa PDB</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DBA_xxx</code></td>
+<td>Só o root</td>
+<td>Só a PDB</td>
+</tr>
+<tr>
+<td><code>CDB_xxx</code></td>
+<td>Root + PDBs abertas, com <code>CON_ID</code></td>
+<td>Só a PDB</td>
+</tr>
+<tr>
+<td><code>V$xxx</code></td>
+<td>Todos os containers</td>
+<td>Só o container corrente</td>
+</tr>
+</tbody></table>
+<p>Exemplo prático, no root: <code>SELECT con_id, COUNT(*) FROM cdb_users GROUP BY con_id;</code> dá um retrato de todas as PDBs de uma vez.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-static-data-dictionary-views.html">About Static Data Dictionary Views</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/overview-of-the-multitenant-architecture.html">Overview of the Multitenant Architecture</a></p>
+<h2>4. Visões de performance dinâmica (V$)</h2>
+<p class="topico-exame">Using Dynamic Performance Views</p>
+
+<p>As <code>V$</code> mostram o <strong>estado vivo da instância</strong>: sessões, processos, memória, parâmetros em vigor, SQL em execução, estado dos arquivos. Elas são atualizadas continuamente e seus contadores <strong>recomeçam a cada STARTUP</strong>.</p>
+<p><strong>De onde elas vêm:</strong></p>
+<ul>
+<li><code>X$</code>: tabelas internas sobre memória e control file, não documentadas.</li>
+<li><code>V_$</code>: as <strong>views de verdade</strong>, de propriedade do SYS.</li>
+<li><code>V$</code>: <strong>sinônimos públicos</strong> das <code>V_$</code>. A documentação diz que DBAs e usuários devem consultar <strong>só as <code>V$</code></strong>.</li>
+</ul>
+<p><strong>Três cuidados:</strong></p>
+<ul>
+<li><strong>Não há leitura consistente.</strong> Como os dados mudam enquanto a consulta roda, a documentação recomenda só consultas simples. Para joins, sorts e GROUP BY pesados, copie os dados para uma tabela (<code>CREATE TABLE ... AS SELECT</code>) e analise a cópia.</li>
+<li><strong>Logo após a instalação, só SYS (ou SYSDBA) acessa as <code>V$</code>.</strong> Para liberar a outro usuário, use a role <code>SELECT_CATALOG_ROLE</code>.</li>
+<li><strong><code>GV$</code></strong> é a mesma view com a coluna <strong><code>INST_ID</code></strong>: num RAC, traz os dados de todas as instâncias.</li>
+</ul>
+<p><img src="img/posts/1z0-082-p4-vdollar.svg" alt="Da memória à view: X$, V_$, V$ e o que responde em cada estágio"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html">About Dynamic Performance Views</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-dictionary-and-dynamic-performance-views.html">Data Dictionary and Dynamic Performance Views</a></p>
+<h2>5. O que responde em cada estágio — e quando usar DBA_ ou V$</h2>
+<p class="topico-exame">Using Dynamic Performance Views</p>
+
+<table>
+<thead>
+<tr>
+<th>Estágio</th>
+<th>Responde</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>NOMOUNT</strong></td>
+<td><code>V$</code> que leem da <strong>memória</strong>: <code>V$INSTANCE</code>, <code>V$PARAMETER</code>, <code>V$SGA</code>, <code>V$DIAG_INFO</code></td>
+</tr>
+<tr>
+<td><strong>MOUNT</strong></td>
+<td>+ <code>V$</code> que leem do <strong>control file</strong>: <code>V$DATABASE</code>, <code>V$DATAFILE</code>, <code>V$LOG</code></td>
+</tr>
+<tr>
+<td><strong>OPEN</strong></td>
+<td>+ o <strong>dicionário</strong> (<code>DBA_</code>, <code>ALL_</code>, <code>USER_</code>, <code>CDB_</code>)</td>
+</tr>
+</tbody></table>
+<p>Para escolher entre <code>DBA_</code> e <code>V$</code>, pense em <strong>&quot;o que o banco é&quot; × &quot;o que a instância está fazendo&quot;</strong>:</p>
+<ul>
+<li><strong><code>DBA_</code></strong> descreve a <strong>estrutura persistente</strong>: <code>DBA_DATA_FILES</code>, <code>DBA_USERS</code>, <code>DBA_TABLESPACES</code>.</li>
+<li><strong><code>V$</code></strong> descreve o <strong>estado agora</strong>: <code>V$SESSION</code>, <code>V$PARAMETER</code>, <code>V$DATAFILE</code>.</li>
+</ul>
+<p>Na prática: banco que não abre? Só as <code>V$</code> ajudam. Relatório de capacidade? <code>DBA_</code>. Lentidão agora? <code>V$</code>.</p>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html">About Dynamic Performance Views</a></p>
+<h2>6. ADR: o repositório de diagnóstico</h2>
+<p class="topico-exame">Using the Automatic Diagnostic Repository (ADR)</p>
+
+<p>O <strong>ADR</strong> é uma estrutura de diretórios <strong>fora do banco</strong>. Por isso ele continua disponível justamente quando o banco está fora do ar. Ali ficam o alert log, os trace files, os dumps de incidentes e os relatórios do Health Monitor.</p>
+<ul>
+<li><strong>A raiz é a ADR base</strong>, definida pelo parâmetro <strong><code>DIAGNOSTIC_DEST</code></strong>. O padrão vem do <code>ORACLE_BASE</code>; sem ele, usa <code>$ORACLE_HOME/rdbms/log</code>.</li>
+<li>Desde o 11g, o <code>DIAGNOSTIC_DEST</code> substitui o <code>BACKGROUND_DUMP_DEST</code> e o <code>USER_DUMP_DEST</code>, que estão <strong>deprecated</strong>.</li>
+<li><strong>Cada instância tem o seu ADR home:</strong> <code>diag/rdbms/&lt;db_unique_name&gt;/&lt;SID&gt;</code>.</li>
+<li>Não é preciso decorar o caminho: <strong><code>SELECT name, value FROM v$diag_info;</code></strong> mostra todos.</li>
+</ul>
+<p><img src="img/posts/1z0-082-p4-adr.svg" alt="Estrutura do ADR: base, home e subdiretórios"></p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/diagnosing-and-resolving-problems.html">Diagnosing and Resolving Problems</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DIAGNOSTIC_DEST.html">DIAGNOSTIC_DEST</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DIAG_INFO.html">V$DIAG_INFO</a></p>
+<h2>7. Alert log e trace files</h2>
+<p class="topico-exame">Using the Alert Log and Trace Files</p>
+
+<p>O <strong>alert log</strong> é o diário cronológico da instância. Ele registra STARTUP e SHUTDOWN, erros críticos, operações administrativas e parâmetros fora do padrão. É a primeira coisa que abro quando algo dá errado.</p>
+<p>Ele existe em <strong>dois formatos</strong>:</p>
+<ul>
+<li><strong><code>log.xml</code></strong>, no subdiretório <code>alert</code>. É o oficial, e a Oracle recomenda usá-lo para qualquer análise automatizada.</li>
+<li><strong><code>alert_&lt;SID&gt;.log</code></strong>, em texto, no subdiretório <code>trace</code>, mantido por compatibilidade.</li>
+</ul>
+<p>Os <strong>trace files</strong> são gravados por cada processo e também ficam em <code>trace</code>:</p>
+<ul>
+<li>processo de background: <code>&lt;SID&gt;_&lt;processo&gt;_&lt;pid&gt;.trc</code> (ex.: <code>cdbprd_lgwr_4321.trc</code>);</li>
+<li>server process: <code>&lt;SID&gt;_ora_&lt;pid&gt;.trc</code>.</li>
+</ul>
+<p>Para achar o trace da sua sessão, consulte a linha <strong>Default Trace File</strong> da <code>V$DIAG_INFO</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/diagnosing-and-resolving-problems.html">Diagnosing and Resolving Problems</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DIAG_INFO.html">V$DIAG_INFO</a></p>
+<h2>8. Problemas, incidentes e flood control</h2>
+<p class="topico-exame">Using the Automatic Diagnostic Repository (ADR)</p>
+
+<ul>
+<li><strong>Problem:</strong> um erro crítico, como <code>ORA-00600</code> (erro interno), <code>ORA-07445</code> (exceção do SO) ou <code>ORA-04031</code> (falta de memória na shared pool). Cada um tem uma <strong>problem key</strong>, por exemplo <code>ORA 600 [4137]</code>.</li>
+<li><strong>Incident:</strong> <strong>cada ocorrência</strong> de um problem, com um ID numérico único no ADR. Um problem pode ter vários incidents.</li>
+</ul>
+<p>O <strong>flood control</strong> evita que um erro repetido encha o disco de dumps. Os limites são <strong>fixos</strong>, por problem key:</p>
+<table>
+<thead>
+<tr>
+<th>Situação</th>
+<th>O que acontece</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mais de <strong>5 incidentes em 1 hora</strong> ou <strong>25 em 1 dia</strong></td>
+<td>Os seguintes são registrados no alert log e no ADR, mas <strong>sem dumps</strong></td>
+</tr>
+<tr>
+<td>Mais de <strong>50 em 1 hora</strong> ou <strong>250 em 1 dia</strong></td>
+<td>Os seguintes <strong>nem são registrados</strong>; só uma mensagem no alert log a cada 10 minutos</td>
+</tr>
+</tbody></table>
+<p>Para mandar ao Oracle Support, o <strong>IPS</strong> (Incident Packaging Service) junta sozinho tudo o que tem o número do incidente e gera um <strong>zip</strong>.</p>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/diagnosing-and-resolving-problems.html">Diagnosing and Resolving Problems</a></p>
+<h2>9. ADRCI: a linha de comando do ADR</h2>
+<p class="topico-exame">Using the Automatic Diagnostic Repository (ADR)</p>
+
+<p>O <strong>ADRCI</strong> <strong>não pede usuário nem senha do banco</strong>: os dados do ADR são protegidos pelas <strong>permissões do sistema operacional</strong>. Por isso ele funciona com o banco parado.</p>
+<ul>
+<li>Ao iniciar, o <strong>homepath é nulo</strong>, ou seja, <strong>todos os homes</strong> sob a ADR base são correntes.</li>
+<li>Para trabalhar só com o banco, use <code>SET HOMEPATH</code>, com o caminho <strong>relativo à ADR base</strong>. Copie da saída de <code>SHOW HOMES</code>.</li>
+<li>Alguns comandos, como os do IPS, <strong>não funcionam com vários homes correntes</strong>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Comando</th>
+<th>Faz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SHOW HOMES</code></td>
+<td>Lista os ADR homes</td>
+</tr>
+<tr>
+<td><code>SET HOMEPATH diag/rdbms/…</code></td>
+<td>Fixa um home</td>
+</tr>
+<tr>
+<td><code>SHOW ALERT -TAIL</code></td>
+<td>Últimas <strong>10</strong> entradas do alert log</td>
+</tr>
+<tr>
+<td><code>SHOW ALERT -TAIL -F</code></td>
+<td>Acompanha o alert log ao vivo</td>
+</tr>
+<tr>
+<td><code>SHOW TRACEFILE -RT</code></td>
+<td>Traces, do mais recente para o mais antigo</td>
+</tr>
+<tr>
+<td><code>SHOW PROBLEM</code> / <code>SHOW INCIDENT</code></td>
+<td>Problemas e incidentes</td>
+</tr>
+<tr>
+<td><code>IPS PACK INCIDENT &lt;id&gt; IN /tmp</code></td>
+<td>Empacota um incidente em zip</td>
+</tr>
+</tbody></table>
+<p>📖 Fonte: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sutil/oracle-adr-command-interpreter-adrci.html">ADRCI: ADR Command Interpreter</a></p>
+<h2>Laboratório: para você fazer no seu 19c</h2>
+<p>Conecte como <code>sqlplus / as sysdba</code> no <code>CDB$ROOT</code>. Troque <code>dbprod</code> pelo nome da sua PDB. Cada bloco tem um botão <strong>Copiar</strong>.</p>
+<p><strong>Passo 1 — USER_ × ALL_ × DBA_ como usuário comum.</strong> A consulta à <code>DBA_</code> falha com <code>ORA-00942</code>.</p>
+<pre><code class="language-sql">-- conectado à PDB com um usuário comum de teste
+SELECT COUNT(*) FROM user_tables;
+SELECT COUNT(*) FROM all_tables;
+SELECT COUNT(*) FROM dba_tables;
+</code></pre>
+<p><strong>Passo 2 — O índice do dicionário.</strong></p>
+<pre><code class="language-sql">SELECT table_name, comments FROM dict WHERE table_name LIKE &#39;DBA_DATA%&#39;;
+</code></pre>
+<p><strong>Passo 3 — DBA_ × CDB_ no root.</strong></p>
+<pre><code class="language-sql">SELECT COUNT(*) FROM dba_users;
+SELECT con_id, COUNT(*) FROM cdb_users GROUP BY con_id ORDER BY con_id;
+SELECT con_id, name, open_mode FROM v$containers ORDER BY con_id;
+</code></pre>
+<p><strong>Passo 4 — V$ é sinônimo, V_$ é a view.</strong></p>
+<pre><code class="language-sql">SELECT owner, object_name, object_type
+FROM   dba_objects
+WHERE  object_name IN (&#39;V$SESSION&#39;, &#39;V_$SESSION&#39;);
+</code></pre>
+<p><strong>Passo 5 — Onde está o ADR.</strong> Anote ADR Base, ADR Home, Diag Trace e Diag Alert.</p>
+<pre><code class="language-sql">SELECT name, value FROM v$diag_info;
+</code></pre>
+<p><strong>Passo 6 — O alert log no shell.</strong> Use o caminho de Diag Trace do passo 5.</p>
+<pre><code class="language-bash">cd &lt;Diag Trace&gt;
+tail -30 alert_*.log
+</code></pre>
+<p><strong>Passo 7 — ADRCI.</strong> Nenhuma senha do banco é pedida.</p>
+<pre><code class="language-bash">adrci
+show base
+show homes
+set homepath &lt;copie o caminho rdbms de show homes&gt;
+show alert -tail 20
+show problem
+show incident
+exit
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-static-data-dictionary-views.html">About Static Data Dictionary Views</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sutil/oracle-adr-command-interpreter-adrci.html">ADRCI</a></p>
+<h2>Pontos de atenção que encontrei nos simulados</h2>
+<ul>
+<li>O dono do dicionário é <strong>SYS</strong>; a tablespace onde ele mora é que se chama <strong>SYSTEM</strong>.</li>
+<li>O dicionário <strong>só está disponível com o banco aberto</strong>.</li>
+<li><code>ALL_</code> mostra o que <strong>você acessa</strong>; &quot;todos&quot; é <code>DBA_</code>.</li>
+<li>As <code>USER_</code> normalmente <strong>não têm</strong> a coluna <code>OWNER</code>.</li>
+<li><code>DBA_</code> no root <strong>não mostra</strong> as PDBs; para isso existe a <code>CDB_</code>.</li>
+<li><code>V$</code> são <strong>sinônimos públicos</strong>; as views de verdade são as <code>V_$</code>.</li>
+<li>As <code>V$</code> <strong>não têm leitura consistente</strong>.</li>
+<li><code>GV$</code> = <code>V$</code> + <code>INST_ID</code>.</li>
+<li><code>V$DATABASE</code> precisa de <strong>MOUNT</strong>; o dicionário precisa de <strong>OPEN</strong>.</li>
+<li><code>DIAGNOSTIC_DEST</code> define a ADR base; o padrão vem do <code>ORACLE_BASE</code>.</li>
+<li>O alert log em texto fica em <code>trace/</code>; o XML, em <code>alert/</code>.</li>
+<li>Flood control: <strong>5 por hora / 25 por dia</strong> sem dumps; <strong>50 / 250</strong> nem registra.</li>
+<li>O ADRCI não pede login no banco, e o IPS exige <strong>um único home</strong> corrente.</li>
+</ul>
+<h2>Resumo em 5 linhas</h2>
+<ol>
+<li>O <strong>dicionário</strong> é do SYS, fica na SYSTEM e só funciona com o banco aberto.</li>
+<li><code>USER_</code> ⊆ <code>ALL_</code> ⊆ <code>DBA_</code>; num CDB, a <code>CDB_</code> junta tudo com <code>CON_ID</code>.</li>
+<li>As <strong><code>V$</code></strong> mostram a instância agora, sem leitura consistente, e zeram a cada STARTUP.</li>
+<li>O <strong>ADR</strong> fica fora do banco, em <code>DIAGNOSTIC_DEST</code>; a <code>V$DIAG_INFO</code> mostra os caminhos.</li>
+<li>O <strong>ADRCI</strong> lê o alert log e os incidentes sem login no banco; o IPS empacota para o Support.</li>
+</ol>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Database Concepts e Reference</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-dictionary-and-dynamic-performance-views.html">Data Dictionary and Dynamic Performance Views</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-static-data-dictionary-views.html">About Static Data Dictionary Views</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html">About Dynamic Performance Views</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DICTIONARY.html">DICTIONARY</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DICT_COLUMNS.html">DICT_COLUMNS</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DIAGNOSTIC_DEST.html">DIAGNOSTIC_DEST</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DIAG_INFO.html">V$DIAG_INFO</a></li>
+</ul>
+<p><strong>Administrator&#39;s Guide, Utilities e Multitenant</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/diagnosing-and-resolving-problems.html">Diagnosing and Resolving Problems</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sutil/oracle-adr-command-interpreter-adrci.html">ADRCI: ADR Command Interpreter</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/overview-of-the-multitenant-architecture.html">Overview of the Multitenant Architecture</a></li>
+</ul>
+<hr>
+<h2>Próximo artigo</h2>
+<p>Na <strong>Parte 5</strong> do Guia 1Z0-082, o assunto é <strong>arquivos de parâmetros</strong>: spfile × pfile, a ordem de busca no STARTUP e o <code>SCOPE</code> do <code>ALTER SYSTEM</code>.</p>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js?v=202610151103"></script><script src="layout.js?v=202610151103"></script><script src="post.js"></script></body></html>
