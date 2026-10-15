@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b8c2bb"/></marker>
+  <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#39ff88"/></marker></defs>
+  <rect width="1200" height="520" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Data Guard Broker</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">O DGMGRL conversa com o processo DMON de cada banco; a configuração fica em 2 arquivos por banco</text>
+
+  <rect x="470" y="112" width="260" height="70" rx="10" fill="#121a15" stroke="#e6ede8" stroke-width="2"/>
+  <text x="600" y="144" text-anchor="middle" font-size="19" font-weight="700" fill="#e6ede8">DGMGRL</text>
+  <text x="600" y="166" text-anchor="middle" font-size="13" fill="#7f9686">SHOW / VALIDATE / SWITCHOVER</text>
+  <path d="M520 182 L330 240" stroke="#b8c2bb" stroke-width="2" marker-end="url(#w)"/>
+  <path d="M680 182 L870 240" stroke="#b8c2bb" stroke-width="2" marker-end="url(#w)"/>
+
+  <g font-size="15">
+    <rect x="40" y="244" width="500" height="200" rx="14" fill="#39ff88" fill-opacity=".05" stroke="#39ff88" stroke-width="2"/>
+    <text x="60" y="276" font-size="18" font-weight="700" fill="#39ff88">cdbprd (primário)</text>
+    <rect x="60" y="296" width="140" height="50" rx="8" fill="#121a15" stroke="#39ff88"/><text x="130" y="327" text-anchor="middle" fill="#39ff88">DMON</text>
+    <rect x="220" y="296" width="300" height="50" rx="8" fill="#121a15" stroke="#7f9686"/><text x="236" y="318" font-size="13" fill="#b8c2bb">+DATA/CDBPRD/dr1cdbprd.dat</text><text x="236" y="336" font-size="13" fill="#b8c2bb">+RECO/CDBPRD/dr2cdbprd.dat</text>
+    <text x="60" y="380" font-size="13" fill="#e6ede8">serviço estático: CDBPRD_DGMGRL</text>
+    <text x="60" y="404" font-size="13" fill="#7f9686">StaticConnectIdentifier → usado p/ subir/derrubar</text>
+    <text x="60" y="424" font-size="13" fill="#7f9686">a instância no switchover</text>
+
+    <rect x="660" y="244" width="500" height="200" rx="14" fill="#5fd3ff" fill-opacity=".05" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="680" y="276" font-size="18" font-weight="700" fill="#5fd3ff">cdbprd_stby (standby)</text>
+    <rect x="680" y="296" width="140" height="50" rx="8" fill="#121a15" stroke="#5fd3ff"/><text x="750" y="327" text-anchor="middle" fill="#5fd3ff">DMON</text>
+    <rect x="840" y="296" width="300" height="50" rx="8" fill="#121a15" stroke="#7f9686"/><text x="856" y="318" font-size="13" fill="#b8c2bb">+DATA/CDBPRD_STBY/dr1….dat</text><text x="856" y="336" font-size="13" fill="#b8c2bb">+RECO/CDBPRD_STBY/dr2….dat</text>
+    <text x="680" y="380" font-size="13" fill="#e6ede8">serviço estático: CDBPRD_STBY_DGMGRL</text>
+    <text x="680" y="404" font-size="13" fill="#7f9686">LOG_ARCHIVE_DEST_n remoto limpo</text>
+    <text x="680" y="424" font-size="13" fill="#7f9686">antes do ADD DATABASE (senão ORA-16698)</text>
+  </g>
+  <path d="M544 300 H654" stroke="#39ff88" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#g)"/>
+  <path d="M656 330 H546" stroke="#39ff88" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#g)"/>
+  <text x="600" y="358" text-anchor="middle" font-size="12" fill="#39ff88">DMON ↔ DMON</text>
+
+  <rect x="40" y="462" width="1120" height="40" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="64" y="488" font-size="14" fill="#e6ede8">Ordem: config_file1/2 (com o broker parado) → DG_BROKER_START=TRUE → CREATE CONFIGURATION → ADD DATABASE → ENABLE</text>
+  <text x="1160" y="512" text-anchor="end" font-size="12" fill="#ffffff55">jj_dba</text>
+</svg>

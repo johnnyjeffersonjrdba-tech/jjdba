@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#39ff88"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffb02e"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5fd3ff"/></marker>
+  </defs>
+  <rect width="1200" height="600" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Physical standby: como o redo chega e é aplicado</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">Transporte ASYNC (LOG_ARCHIVE_DEST_2) · real-time apply a partir dos standby redo logs</text>
+
+  <!-- primário -->
+  <rect x="40" y="120" width="440" height="380" rx="14" fill="#39ff88" fill-opacity=".05" stroke="#39ff88" stroke-width="2.5"/>
+  <text x="60" y="154" font-size="20" font-weight="700" fill="#39ff88">PRIMÁRIO</text>
+  <text x="460" y="154" text-anchor="end" font-size="14" fill="#7f9686">srv-lab-ora-01 · cdbprd</text>
+  <g font-size="15">
+    <rect x="60" y="176" width="180" height="56" rx="8" fill="#121a15" stroke="#e6ede8"/><text x="150" y="210" text-anchor="middle" fill="#e6ede8">transações</text>
+    <path d="M240 204 H286" stroke="#39ff88" stroke-width="2" marker-end="url(#g)"/>
+    <rect x="290" y="176" width="170" height="56" rx="8" fill="#121a15" stroke="#39ff88"/><text x="375" y="210" text-anchor="middle" fill="#39ff88">LGWR</text>
+    <path d="M375 232 V272" stroke="#39ff88" stroke-width="2" marker-end="url(#g)"/>
+    <rect x="290" y="276" width="170" height="56" rx="8" fill="#121a15" stroke="#e6ede8"/><text x="375" y="303" text-anchor="middle" fill="#e6ede8">online redo</text><text x="375" y="322" text-anchor="middle" font-size="12" fill="#7f9686">(3 grupos)</text>
+    <rect x="290" y="356" width="170" height="56" rx="8" fill="#121a15" stroke="#ffb02e"/><text x="375" y="383" text-anchor="middle" fill="#ffb02e">ARCn</text><text x="375" y="402" text-anchor="middle" font-size="12" fill="#7f9686">archives na +RECO (FRA)</text>
+    <path d="M375 332 V352" stroke="#ffb02e" stroke-width="2" marker-end="url(#o)"/>
+    <rect x="60" y="276" width="200" height="136" rx="8" fill="#0b0f0c" stroke="#7f9686" stroke-dasharray="6 5"/>
+    <text x="74" y="302" font-size="13" fill="#b8c2bb">ARCHIVELOG</text>
+    <text x="74" y="326" font-size="13" fill="#b8c2bb">FORCE LOGGING</text>
+    <text x="74" y="350" font-size="13" fill="#b8c2bb">FLASHBACK ON</text>
+    <text x="74" y="374" font-size="13" fill="#b8c2bb">SRLs (p/ switchover)</text>
+    <text x="74" y="398" font-size="13" fill="#b8c2bb">DG_CONFIG definido</text>
+    <text x="60" y="476" font-size="13" fill="#7f9686">LOG_ARCHIVE_DEST_2 = SERVICE=CDBPRD_STBY_TNS ASYNC</text>
+  </g>
+
+  <!-- transporte -->
+  <path d="M460 204 C 560 204, 620 230, 712 230" fill="none" stroke="#39ff88" stroke-width="3" marker-end="url(#g)"/>
+  <text x="590" y="196" text-anchor="middle" font-size="15" font-weight="700" fill="#39ff88">redo (ASYNC)</text>
+  <path d="M712 470 C 620 470, 560 400, 462 390" fill="none" stroke="#ffb02e" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#o)"/>
+  <text x="590" y="462" text-anchor="middle" font-size="13" fill="#ffb02e">FAL: busca archives</text>
+  <text x="590" y="480" text-anchor="middle" font-size="13" fill="#ffb02e">em caso de gap</text>
+
+  <!-- standby -->
+  <rect x="720" y="120" width="440" height="380" rx="14" fill="#5fd3ff" fill-opacity=".05" stroke="#5fd3ff" stroke-width="2.5"/>
+  <text x="740" y="154" font-size="20" font-weight="700" fill="#5fd3ff">STANDBY</text>
+  <text x="1140" y="154" text-anchor="end" font-size="14" fill="#7f9686">srv-lab-ora-02 · cdbprd_stby · MOUNTED</text>
+  <g font-size="15">
+    <rect x="740" y="200" width="170" height="56" rx="8" fill="#121a15" stroke="#39ff88"/><text x="825" y="234" text-anchor="middle" fill="#39ff88">RFS</text>
+    <path d="M910 228 H950" stroke="#5fd3ff" stroke-width="2" marker-end="url(#b)"/>
+    <rect x="954" y="200" width="186" height="56" rx="8" fill="#121a15" stroke="#5fd3ff"/><text x="1047" y="227" text-anchor="middle" fill="#5fd3ff">standby redo</text><text x="1047" y="246" text-anchor="middle" font-size="12" fill="#7f9686">(4 SRLs = 3 + 1)</text>
+    <path d="M1047 256 V296" stroke="#5fd3ff" stroke-width="2" marker-end="url(#b)"/>
+    <rect x="954" y="300" width="186" height="56" rx="8" fill="#5fd3ff" fill-opacity=".14" stroke="#5fd3ff"/><text x="1047" y="327" text-anchor="middle" fill="#5fd3ff">MRP (apply)</text><text x="1047" y="346" text-anchor="middle" font-size="12" fill="#7f9686">real-time apply</text>
+    <path d="M1047 356 V396" stroke="#5fd3ff" stroke-width="2" marker-end="url(#b)"/>
+    <rect x="954" y="400" width="186" height="56" rx="8" fill="#121a15" stroke="#e6ede8"/><text x="1047" y="434" text-anchor="middle" fill="#e6ede8">datafiles (OMF)</text>
+    <rect x="740" y="300" width="190" height="156" rx="8" fill="#0b0f0c" stroke="#7f9686" stroke-dasharray="6 5"/>
+    <text x="754" y="326" font-size="13" fill="#b8c2bb">criada via RMAN</text>
+    <text x="754" y="346" font-size="13" fill="#b8c2bb">DUPLICATE FROM</text>
+    <text x="754" y="366" font-size="13" fill="#b8c2bb">ACTIVE DATABASE</text>
+    <text x="754" y="398" font-size="13" fill="#b8c2bb">+DATA/CDBPRD_STBY</text>
+    <text x="754" y="418" font-size="13" fill="#b8c2bb">+RECO/CDBPRD_STBY</text>
+    <text x="754" y="438" font-size="13" fill="#b8c2bb">FAL_SERVER=primário</text>
+  </g>
+  <rect x="40" y="520" width="1120" height="52" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="64" y="552" font-size="15" fill="#e6ede8">DB_NAME igual (cdbprd) · DB_UNIQUE_NAME diferente (cdbprd × cdbprd_stby) · password file idêntico nos dois lados</text>
+  <text x="1160" y="592" text-anchor="end" font-size="13" fill="#ffffff55">jj_dba</text>
+</svg>
