@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f9686"/></marker></defs>
+  <rect width="1200" height="560" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Arquivo de parâmetros: busca e SCOPE</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">STARTUP sem PFILE= procura em $ORACLE_HOME/dbs e para no primeiro que achar</text>
+
+  <g font-size="15">
+    <rect x="40" y="124" width="250" height="70" rx="10" fill="#121a15" stroke="#39ff88"/>
+    <text x="60" y="154" font-weight="700" fill="#e6ede8">1. spfile&lt;SID&gt;.ora</text>
+    <text x="60" y="178" font-size="13" fill="#b8c2bb">binário · preferido</text>
+    <path d="M290 159 H336" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <text x="296" y="148" font-size="12" fill="#7f9686">não achou</text>
+    <rect x="340" y="124" width="250" height="70" rx="10" fill="#121a15" stroke="#39ff88"/>
+    <text x="360" y="154" font-weight="700" fill="#e6ede8">2. spfile.ora</text>
+    <text x="360" y="178" font-size="13" fill="#b8c2bb">binário · comum ao RAC</text>
+    <path d="M590 159 H636" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <text x="596" y="148" font-size="12" fill="#7f9686">não achou</text>
+    <rect x="640" y="124" width="250" height="70" rx="10" fill="#121a15" stroke="#ffb02e"/>
+    <text x="660" y="154" font-weight="700" fill="#e6ede8">3. init&lt;SID&gt;.ora</text>
+    <text x="660" y="178" font-size="13" fill="#b8c2bb">texto · pfile</text>
+    <path d="M890 159 H936" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="940" y="124" width="220" height="70" rx="10" fill="#121a15" stroke="#ff5f5f"/>
+    <text x="960" y="154" font-weight="700" fill="#ff5f5f">erro no STARTUP</text>
+    <text x="960" y="178" font-size="13" fill="#b8c2bb">nenhum encontrado</text>
+  </g>
+
+  <text x="40" y="250" font-size="19" font-weight="700" fill="#e6ede8">ALTER SYSTEM SET … SCOPE=</text>
+  <g font-size="15">
+    <rect x="40" y="272" width="360" height="150" rx="12" fill="#39ff88" fill-opacity=".06" stroke="#39ff88"/>
+    <text x="62" y="306" font-size="20" font-weight="700" fill="#39ff88">MEMORY</text>
+    <text x="62" y="338" fill="#e6ede8">✔ vale agora</text><text x="62" y="364" fill="#e6ede8">✘ some no restart</text>
+    <text x="62" y="400" font-size="13" fill="#b8c2bb">padrão se subiu com pfile</text>
+
+    <rect x="420" y="272" width="360" height="150" rx="12" fill="#ffb02e" fill-opacity=".06" stroke="#ffb02e"/>
+    <text x="442" y="306" font-size="20" font-weight="700" fill="#ffb02e">SPFILE</text>
+    <text x="442" y="338" fill="#e6ede8">✘ não muda agora</text><text x="442" y="364" fill="#e6ede8">✔ vale no próximo startup</text>
+    <text x="442" y="400" font-size="13" fill="#b8c2bb">única opção p/ parâmetro estático</text>
+
+    <rect x="800" y="272" width="360" height="150" rx="12" fill="#5fd3ff" fill-opacity=".06" stroke="#5fd3ff"/>
+    <text x="822" y="306" font-size="20" font-weight="700" fill="#5fd3ff">BOTH</text>
+    <text x="822" y="338" fill="#e6ede8">✔ vale agora</text><text x="822" y="364" fill="#e6ede8">✔ vale depois do restart</text>
+    <text x="822" y="400" font-size="13" fill="#b8c2bb">padrão se subiu com spfile</text>
+  </g>
+  <rect x="40" y="452" width="1120" height="74" rx="10" fill="#121a15" stroke="#1c2a21"/>
+  <text x="60" y="484" font-size="15" fill="#e6ede8">Subiu com pfile? SCOPE=SPFILE e SCOPE=BOTH falham: não há spfile para gravar.</text>
+  <text x="60" y="510" font-size="15" fill="#7f9686">Saber qual: SHOW PARAMETER spfile (vazio = pfile) · ver o gravado: V$SPPARAMETER</text>
+</svg>

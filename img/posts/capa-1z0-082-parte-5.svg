@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#39ff88" stroke-opacity=".06"/></pattern>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#grid)"/>
+  <text x="48" y="62" font-size="20" fill="#39ff88">GUIA 1Z0-082 · PARTE 5</text>
+  <text x="48" y="114" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="#fff">PFILE, SPFILE e SCOPE</text>
+  <text x="48" y="150" font-size="18" fill="#7f9686">o arquivo que a instância lê antes de tudo</text>
+
+  <g font-size="18">
+    <rect x="48" y="200" width="370" height="330" rx="14" fill="#39ff88" fill-opacity=".07" stroke="#39ff88" stroke-width="2.5"/>
+    <text x="72" y="244" font-size="24" font-weight="700" fill="#39ff88">STARTUP procura</text>
+    <text x="72" y="276" font-size="15" fill="#7f9686">para no primeiro que achar</text>
+    <text x="72" y="330" fill="#e6ede8">1. spfile&lt;SID&gt;.ora</text><text x="72" y="362" fill="#e6ede8">2. spfile.ora</text><text x="72" y="394" fill="#e6ede8">3. init&lt;SID&gt;.ora</text>
+    <text x="72" y="490" font-size="15" fill="#b8c2bb">$ORACLE_HOME/dbs</text>
+
+    <rect x="455" y="200" width="370" height="330" rx="14" fill="#ffb02e" fill-opacity=".07" stroke="#ffb02e" stroke-width="2.5"/>
+    <text x="479" y="244" font-size="24" font-weight="700" fill="#ffb02e">ALTER SYSTEM</text>
+    <text x="479" y="276" font-size="15" fill="#7f9686">onde a mudança vale</text>
+    <text x="479" y="330" fill="#e6ede8">MEMORY · agora</text><text x="479" y="362" fill="#e6ede8">SPFILE · próximo startup</text><text x="479" y="394" fill="#e6ede8">BOTH   · os dois</text>
+    <text x="479" y="490" font-size="15" fill="#b8c2bb">estático: só SCOPE=SPFILE</text>
+
+    <rect x="862" y="200" width="370" height="330" rx="14" fill="#5fd3ff" fill-opacity=".07" stroke="#5fd3ff" stroke-width="2.5"/>
+    <text x="886" y="244" font-size="24" font-weight="700" fill="#5fd3ff">CREATE … FROM</text>
+    <text x="886" y="276" font-size="15" fill="#7f9686">ir e voltar entre formatos</text>
+    <text x="886" y="330" fill="#e6ede8">PFILE FROM SPFILE</text><text x="886" y="362" fill="#e6ede8">SPFILE FROM PFILE</text><text x="886" y="394" fill="#e6ede8">… FROM MEMORY</text>
+    <text x="886" y="490" font-size="15" fill="#b8c2bb">SYSDBA · root do CDB</text>
+  </g>
+  <rect x="48" y="596" width="1184" height="70" rx="10" fill="#0b0f0c" stroke="#1c2a21"/>
+  <text x="70" y="628" font-size="15" fill="#e6ede8">spfile = binário, não edite · SHOW PARAMETER spfile vazio = subiu com pfile</text>
+  <text x="70" y="652" font-size="15" fill="#7f9686">sem SCOPE: BOTH (spfile) ou MEMORY (pfile) · RESET volta ao padrão</text>
+  <text x="1232" y="706" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>
