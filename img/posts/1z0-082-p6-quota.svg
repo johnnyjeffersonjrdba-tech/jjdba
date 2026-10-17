@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f9686"/></marker></defs>
+  <rect width="1200" height="520" rx="16" fill="#0b0f0c"/>
+  <text x="40" y="54" font-size="26" font-weight="700" fill="#e6ede8">Por que o erro de quota aparece no INSERT</text>
+  <text x="40" y="86" font-size="17" fill="#7f9686">deferred segment creation: o segmento só nasce quando o primeiro dado chega</text>
+  <g font-size="15">
+    <rect x="40" y="130" width="250" height="100" rx="10" fill="#121a15" stroke="#39ff88"/>
+    <text x="60" y="162" font-weight="700" fill="#e6ede8">CREATE USER</text>
+    <text x="60" y="188" font-size="13" fill="#b8c2bb">DEFAULT TABLESPACE users</text>
+    <text x="60" y="210" font-size="13" fill="#b8c2bb">sem QUOTA</text>
+    <path d="M290 180 H336" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="340" y="130" width="250" height="100" rx="10" fill="#121a15" stroke="#39ff88"/>
+    <text x="360" y="162" font-weight="700" fill="#e6ede8">CREATE TABLE t</text>
+    <text x="360" y="188" font-size="13" fill="#39ff88">✔ Table created</text>
+    <text x="360" y="210" font-size="13" fill="#b8c2bb">só no dicionário</text>
+    <path d="M590 180 H636" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="640" y="130" width="250" height="100" rx="10" fill="#121a15" stroke="#ff5f5f"/>
+    <text x="660" y="162" font-weight="700" fill="#e6ede8">INSERT INTO t</text>
+    <text x="660" y="188" font-size="13" fill="#ff5f5f">✘ ORA-01950</text>
+    <text x="660" y="210" font-size="13" fill="#b8c2bb">precisa de 1º extent</text>
+    <path d="M890 180 H936" stroke="#7f9686" stroke-width="2" marker-end="url(#w)"/>
+    <rect x="940" y="130" width="220" height="100" rx="10" fill="#121a15" stroke="#ffb02e"/>
+    <text x="960" y="162" font-weight="700" fill="#e6ede8">QUOTA 5M ON users</text>
+    <text x="960" y="188" font-size="13" fill="#39ff88">✔ INSERT funciona</text>
+    <text x="960" y="210" font-size="13" fill="#b8c2bb">até acabar: ORA-01536</text>
+  </g>
+  <g font-size="15">
+    <rect x="40" y="270" width="545" height="200" rx="12" fill="#ffb02e" fill-opacity=".06" stroke="#ffb02e"/>
+    <text x="62" y="304" font-size="20" font-weight="700" fill="#ffb02e">Quota</text>
+    <text x="62" y="338" fill="#e6ede8">por tablespace · conta todos os segmentos</text>
+    <text x="62" y="364" fill="#e6ede8">QUOTA 0 bloqueia espaço novo, não apaga</text>
+    <text x="62" y="390" fill="#e6ede8">não existe na temporary tablespace</text>
+    <text x="62" y="440" font-size="13" fill="#b8c2bb">UNLIMITED TABLESPACE ignora todas as quotas</text>
+    <rect x="615" y="270" width="545" height="200" rx="12" fill="#5fd3ff" fill-opacity=".06" stroke="#5fd3ff"/>
+    <text x="637" y="304" font-size="20" font-weight="700" fill="#5fd3ff">Default tablespace</text>
+    <text x="637" y="338" fill="#e6ede8">omitida: a do banco; sem ela, SYSTEM</text>
+    <text x="637" y="364" fill="#e6ede8">não pode ser temporária nem undo</text>
+    <text x="637" y="390" fill="#e6ede8">ALTER USER só vale p/ objetos novos</text>
+    <text x="637" y="440" font-size="13" fill="#b8c2bb">diz ONDE; a quota diz QUANTO</text>
+  </g>
+</svg>

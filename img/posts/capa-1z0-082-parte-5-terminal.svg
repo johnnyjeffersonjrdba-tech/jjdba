@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <radialGradient id="glow" cx=".72" cy=".5" r=".6"><stop offset="0" stop-color="#39ff88" stop-opacity=".12"/><stop offset="1" stop-color="#39ff88" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#glow)"/>
+  <text x="56" y="92" font-size="20" fill="#39ff88">GUIA 1Z0-082 · PARTE 5</text>
+  <text x="56" y="176" font-family="Arial Black, Arial" font-weight="900" font-size="64" fill="#fff">PFILE</text>
+  <text x="56" y="252" font-family="Arial Black, Arial" font-weight="900" font-size="64" fill="#fff">SPFILE</text>
+  <text x="56" y="328" font-family="Arial Black, Arial" font-weight="900" font-size="64" fill="#39ff88">SCOPE</text>
+  <text x="56" y="386" font-size="19" fill="#7f9686">o arquivo que a instância</text>
+  <text x="56" y="414" font-size="19" fill="#7f9686">lê antes de tudo</text>
+  <g font-size="17">
+    <text x="56" y="520" fill="#e6ede8">MEMORY</text><text x="176" y="520" fill="#7f9686">agora</text>
+    <text x="56" y="556" fill="#e6ede8">SPFILE</text><text x="176" y="556" fill="#7f9686">próximo startup</text>
+    <text x="56" y="592" fill="#e6ede8">BOTH</text><text x="176" y="592" fill="#7f9686">os dois</text>
+  </g>
+  <g transform="translate(560 120)">
+    <rect width="664" height="480" rx="14" fill="#070a08" stroke="#1f3a29" stroke-width="2"/>
+    <rect width="664" height="44" rx="14" fill="#101814"/><rect y="30" width="664" height="14" fill="#101814"/>
+    <circle cx="26" cy="22" r="7" fill="#ff5f5f"/><circle cx="50" cy="22" r="7" fill="#ffb02e"/><circle cx="74" cy="22" r="7" fill="#39ff88"/>
+    <text x="332" y="28" text-anchor="middle" font-size="14" fill="#7f9686">oracle@lab19c: ~</text>
+    <g font-size="17">
+      <text x="28" y="90" fill="#39ff88">SQL&gt; <tspan fill="#e6ede8">startup</tspan></text>
+      <text x="28" y="122" fill="#7f9686">-- procurando em $ORACLE_HOME/dbs ...</text>
+      <text x="28" y="154" fill="#39ff88">  ✔ <tspan fill="#e6ede8">spfileORCL.ora</tspan><tspan fill="#7f9686">   ← usa este</tspan></text>
+      <text x="28" y="186" fill="#4d5a52">    spfile.ora</text>
+      <text x="28" y="218" fill="#4d5a52">    initORCL.ora     (ignorado)</text>
+      <text x="28" y="264" fill="#39ff88">SQL&gt; <tspan fill="#e6ede8">alter system set processes=600</tspan></text>
+      <text x="28" y="290" fill="#e6ede8">       scope=memory;</text>
+      <text x="28" y="322" fill="#ff5f5f">ORA-02095: specified initialization</text>
+      <text x="28" y="348" fill="#ff5f5f">parameter cannot be modified</text>
+      <text x="28" y="394" fill="#39ff88">SQL&gt; <tspan fill="#e6ede8">... scope=spfile;</tspan></text>
+      <text x="28" y="426" fill="#39ff88">System altered.<tspan fill="#7f9686">  -- vale no próximo startup</tspan></text>
+      <rect x="28" y="446" width="11" height="20" fill="#39ff88"/>
+    </g>
+  </g>
+  <text x="1224" y="680" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>

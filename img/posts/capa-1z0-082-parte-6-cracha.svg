@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132219"/><stop offset="1" stop-color="#0a110d"/></linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#39ff88" fill-opacity=".08"/></pattern>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#dots)"/>
+  <g transform="translate(700 70) rotate(4)">
+    <rect x="190" y="-30" width="120" height="44" rx="8" fill="#1c2a21" stroke="#39ff88" stroke-opacity=".4"/>
+    <rect width="500" height="580" rx="22" fill="url(#card)" stroke="#39ff88" stroke-width="2.5"/>
+    <rect width="500" height="80" rx="22" fill="#39ff88" fill-opacity=".14"/><rect y="58" width="500" height="22" fill="#39ff88" fill-opacity=".14"/>
+    <text x="32" y="50" font-size="20" font-weight="700" fill="#39ff88">DBA_USERS</text>
+    <text x="468" y="50" text-anchor="end" font-size="14" fill="#7f9686">PDB: ORCLPDB1</text>
+    <circle cx="96" cy="170" r="56" fill="#0b0f0c" stroke="#39ff88" stroke-opacity=".5" stroke-width="2"/>
+    <circle cx="96" cy="152" r="20" fill="#39ff88" fill-opacity=".35"/>
+    <path d="M60 206 a36 30 0 0 1 72 0" fill="#39ff88" fill-opacity=".35"/>
+    <text x="180" y="156" font-family="Arial Black, Arial" font-weight="900" font-size="36" fill="#fff">LAB06</text>
+    <text x="180" y="188" font-size="15" fill="#7f9686">COMMON = NO · local</text>
+    <g font-size="16">
+      <text x="32" y="280" fill="#7f9686">ACCOUNT_STATUS</text><text x="468" y="280" text-anchor="end" fill="#ffb02e">LOCKED(TIMED)</text>
+      <line x1="32" y1="296" x2="468" y2="296" stroke="#1c2a21"/>
+      <text x="32" y="330" fill="#7f9686">DEFAULT_TABLESPACE</text><text x="468" y="330" text-anchor="end" fill="#e6ede8">USERS</text>
+      <line x1="32" y1="346" x2="468" y2="346" stroke="#1c2a21"/>
+      <text x="32" y="380" fill="#7f9686">TEMPORARY_TABLESPACE</text><text x="468" y="380" text-anchor="end" fill="#e6ede8">TEMP</text>
+      <line x1="32" y1="396" x2="468" y2="396" stroke="#1c2a21"/>
+      <text x="32" y="430" fill="#7f9686">QUOTA ON USERS</text><text x="468" y="430" text-anchor="end" fill="#e6ede8">5M</text>
+      <line x1="32" y1="446" x2="468" y2="446" stroke="#1c2a21"/>
+      <text x="32" y="480" fill="#7f9686">PROFILE</text><text x="468" y="480" text-anchor="end" fill="#5fd3ff">LAB_PROF</text>
+    </g>
+    <g fill="#e6ede8" fill-opacity=".55">
+      <rect x="32" y="520" width="4" height="34"/><rect x="42" y="520" width="2" height="34"/><rect x="50" y="520" width="6" height="34"/><rect x="62" y="520" width="2" height="34"/><rect x="70" y="520" width="4" height="34"/><rect x="80" y="520" width="2" height="34"/><rect x="88" y="520" width="6" height="34"/><rect x="100" y="520" width="3" height="34"/><rect x="108" y="520" width="2" height="34"/><rect x="116" y="520" width="5" height="34"/>
+    </g>
+    <text x="468" y="548" text-anchor="end" font-size="13" fill="#7f9686">+ CREATE SESSION</text>
+  </g>
+  <text x="56" y="92" font-size="20" fill="#39ff88">GUIA 1Z0-082 · PARTE 6</text>
+  <text x="56" y="180" font-family="Arial Black, Arial" font-weight="900" font-size="60" fill="#fff">Usuários,</text>
+  <text x="56" y="252" font-family="Arial Black, Arial" font-weight="900" font-size="60" fill="#fff">quotas e</text>
+  <text x="56" y="324" font-family="Arial Black, Arial" font-weight="900" font-size="60" fill="#39ff88">profiles</text>
+  <text x="56" y="382" font-size="19" fill="#7f9686">como nasce uma conta no Oracle</text>
+  <text x="56" y="410" font-size="19" fill="#7f9686">e quais regras ela segue</text>
+  <g font-size="16">
+    <text x="56" y="520" fill="#ff5f5f">ORA-01045</text><text x="186" y="520" fill="#7f9686">sem CREATE SESSION</text>
+    <text x="56" y="556" fill="#ff5f5f">ORA-01950</text><text x="186" y="556" fill="#7f9686">sem quota, no 1º INSERT</text>
+    <text x="56" y="592" fill="#ff5f5f">ORA-65096</text><text x="186" y="592" fill="#7f9686">nome sem C## no root</text>
+  </g>
+  <text x="1224" y="690" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>

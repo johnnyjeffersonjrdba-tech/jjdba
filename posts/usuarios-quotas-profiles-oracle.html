@@ -1,0 +1,368 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>Usuários, quotas e profiles no Oracle (1Z0-082 · Parte 6) · JJ DBA</title>
+<meta name="description" content="CREATE USER e o que vale quando cada cláusula é omitida, usuário comum × local no CDB, default e temporary tablespace, quotas e o ORA-01950 no primeiro INSERT, profiles com limites de senha e de recurso e o RESOURCE_LIMIT — com diagrama, laboratório e a documentação oficial do 19c.">
+<meta name="keywords" content="Oracle, DBA, DBA, CERTIFICAÇÃO">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/usuarios-quotas-profiles-oracle.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Usuários, quotas e profiles no Oracle (1Z0-082 · Parte 6)">
+<meta property="og:description" content="CREATE USER e o que vale quando cada cláusula é omitida, usuário comum × local no CDB, default e temporary tablespace, quotas e o ORA-01950 no primeiro INSERT, profiles com limites de senha e de recurso e o RESOURCE_LIMIT — com diagrama, laboratório e a documentação oficial do 19c.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/usuarios-quotas-profiles-oracle.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/usuarios-quotas-profiles-oracle.png">
+<meta property="article:published_time" content="2026-10-17">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Usuários, quotas e profiles no Oracle (1Z0-082 · Parte 6)">
+<meta name="twitter:description" content="CREATE USER e o que vale quando cada cláusula é omitida, usuário comum × local no CDB, default e temporary tablespace, quotas e o ORA-01950 no primeiro INSERT, profiles com limites de senha e de recurso e o RESOURCE_LIMIT — com diagrama, laboratório e a documentação oficial do 19c.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/usuarios-quotas-profiles-oracle.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Usuários, quotas e profiles no Oracle (1Z0-082 · Parte 6)","description":"CREATE USER e o que vale quando cada cláusula é omitida, usuário comum × local no CDB, default e temporary tablespace, quotas e o ORA-01950 no primeiro INSERT, profiles com limites de senha e de recurso e o RESOURCE_LIMIT — com diagrama, laboratório e a documentação oficial do 19c.","datePublished":"2026-10-17","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/usuarios-quotas-profiles-oracle.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/usuarios-quotas-profiles-oracle.html","inLanguage":"pt-BR","keywords":"DBA, CERTIFICAÇÃO","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css"></head><body>
+<main class="wrap"><article id="a" data-id="usuarios-quotas-profiles-oracle" style="padding:32px 0"><span class="tag">Estudo</span><span class="meta">17 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>Usuários, quotas e profiles no Oracle (1Z0-082 · Parte 6)</h1><img class="capa-post" src="img/posts/capa-1z0-082-parte-6-cracha.svg" alt="Usuários, quotas e profiles no Oracle (1Z0-082 · Parte 6)"><span class="chip">DBA</span><span class="chip">CERTIFICAÇÃO</span>
+<p>Sexta parte do <strong>Guia 1Z0-082</strong>. Na <a href="post.html?id=pfile-spfile-scope-oracle">Parte 5</a> fechamos o bloco de gerenciar a instância. Agora começa a <strong>segurança</strong>: como nasce uma conta, onde ficam os objetos dela, quanto espaço ela pode usar e quais regras de senha e de recurso ela segue.</p>
+<p>Achei que este assunto seria tranquilo, porque <code>CREATE USER</code> eu faço há anos. Só que a prova pergunta justamente <strong>o que acontece quando cada cláusula é omitida</strong>, e aí vi que eu fazia muita coisa no automático.</p>
+<blockquote>
+<p>Cada afirmação técnica deste artigo foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>. Os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>1. Anatomia de um CREATE USER</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>Todo usuário tem um <strong>schema com o mesmo nome</strong>. A conta recém-criada nasce com o <strong>domínio de privilégios vazio</strong>: sem <code>CREATE SESSION</code>, ela nem conecta (<code>ORA-01045</code>). O par mínimo é sempre <code>CREATE USER</code> + <code>GRANT CREATE SESSION</code>.</p>
+<p>O <code>CREATE USER</code> é uma lista de cláusulas independentes. O que vale quando cada uma é omitida:</p>
+<table>
+<thead>
+<tr>
+<th>Cláusula</th>
+<th>Se omitir</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>IDENTIFIED BY</code> / <code>EXTERNALLY</code> / <code>GLOBALLY</code> / <code>NO AUTHENTICATION</code></td>
+<td>Obrigatória: define como o usuário se autentica</td>
+</tr>
+<tr>
+<td><code>DEFAULT TABLESPACE</code></td>
+<td>A default permanent tablespace do banco (ou da PDB); sem ela, <strong>SYSTEM</strong></td>
+</tr>
+<tr>
+<td><code>TEMPORARY TABLESPACE</code></td>
+<td>A default temporary tablespace do banco; sem ela, <strong>SYSTEM</strong></td>
+</tr>
+<tr>
+<td><code>QUOTA … ON</code></td>
+<td><strong>Nenhuma quota</strong> em nenhuma tablespace</td>
+</tr>
+<tr>
+<td><code>PROFILE</code></td>
+<td>Profile <strong>DEFAULT</strong></td>
+</tr>
+<tr>
+<td><code>PASSWORD EXPIRE</code></td>
+<td>A senha não expira no primeiro login</td>
+</tr>
+<tr>
+<td><code>ACCOUNT LOCK / UNLOCK</code></td>
+<td><strong>UNLOCK</strong></td>
+</tr>
+</tbody></table>
+<p>Mais três detalhes:</p>
+<ul>
+<li>A senha é <strong>case sensitive</strong>.</li>
+<li>Sem aspas, o nome é guardado em <strong>maiúsculas</strong> (<code>jward</code> vira <code>JWARD</code>). Com aspas, fica exatamente como foi escrito, e você vai precisar das aspas para sempre.</li>
+<li><strong>Default roles</strong> não entram no <code>CREATE USER</code>: a conta nasce com <code>DEFAULT ROLE ALL</code>, e toda role concedida depois já vem ativa no login.</li>
+</ul>
+<p>Para remover: <code>DROP USER u</code>. Se o schema tiver objetos, é preciso <code>DROP USER u CASCADE</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/creating-user-accounts.html">Creating User Accounts</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html">CREATE USER</a></p>
+<h2>2. Usuário comum × usuário local num CDB</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>Num CDB, a diferença entre os dois tipos de usuário é de <strong>alcance</strong>, não de privilégio:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Comum</strong></th>
+<th><strong>Local</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Existe em</td>
+<td>Root e <strong>todas</strong> as PDBs (inclusive as futuras)</td>
+<td><strong>Uma</strong> PDB</td>
+</tr>
+<tr>
+<td>Criado conectado a</td>
+<td><code>CDB$ROOT</code></td>
+<td>A PDB</td>
+</tr>
+<tr>
+<td>Nome</td>
+<td>Começa com <strong><code>C##</code></strong> (<code>COMMON_USER_PREFIX</code>)</td>
+<td><strong>Não pode</strong> começar com <code>C##</code></td>
+</tr>
+<tr>
+<td><code>CONTAINER=</code></td>
+<td><code>ALL</code> (padrão e único valor no root)</td>
+<td><code>CURRENT</code> (padrão na PDB)</td>
+</tr>
+<tr>
+<td>Exemplos</td>
+<td>SYS, SYSTEM, <code>C##DBA</code></td>
+<td><code>APP</code>, <code>HR</code></td>
+</tr>
+</tbody></table>
+<p>Por isso <code>CREATE USER app</code> no root falha (<code>ORA-65096</code>), e <code>CREATE USER c##app</code> dentro da PDB também falha.</p>
+<ul>
+<li>Se o <code>CREATE USER</code> de um usuário comum citar tablespace, quota ou profile, esses objetos precisam <strong>existir em todos os containers</strong>.</li>
+<li>Um usuário comum pode ter <strong>privilégios diferentes em cada PDB</strong>.</li>
+<li>Não existe conversão: comum não vira local, nem o contrário. Cria-se outra conta.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/creating-user-accounts.html">Creating User Accounts</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html">CREATE USER</a></p>
+<h2>3. Default tablespace e temporary tablespace</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<ul>
+<li>A <strong>default tablespace</strong> recebe os objetos que o usuário cria <strong>sem</strong> dizer <code>TABLESPACE</code> no DDL.</li>
+<li>A <strong>temporary tablespace</strong> recebe os segmentos temporários da sessão: sorts e joins que não cabem na PGA.</li>
+</ul>
+<p>O que eu precisei fixar:</p>
+<ul>
+<li>A default tablespace <strong>não pode</strong> ser temporária nem undo. A temporary precisa ser do tipo temporário.</li>
+<li><strong>Não existe quota na temporary tablespace</strong>: segmentos temporários pertencem ao SYS, e a cláusula <code>QUOTA</code> nem é aceita para ela.</li>
+<li>Trocar a default tablespace com <code>ALTER USER</code> só vale para objetos <strong>novos</strong>. As tabelas antigas ficam onde estão; para movê-las, <code>ALTER TABLE … MOVE</code>.</li>
+<li><strong>Default tablespace não dá espaço.</strong> Sem quota, o usuário não aloca nada lá.</li>
+</ul>
+<p>Para ver os padrões do banco:</p>
+<pre><code class="language-sql">SELECT property_name, property_value
+FROM   database_properties
+WHERE  property_name LIKE &#39;DEFAULT_%TABLESPACE&#39;;
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/creating-user-accounts.html">Creating User Accounts</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-USER.html">ALTER USER</a></p>
+<h2>4. Quotas e o ORA-01950 que aparece no INSERT</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>Quota é o limite de espaço que os segmentos de um usuário podem ocupar <strong>numa tablespace específica</strong>.</p>
+<pre><code class="language-sql">ALTER USER app QUOTA 100M ON users;       -- teto de 100 MB
+ALTER USER app QUOTA UNLIMITED ON users;  -- sem teto nesta tablespace
+ALTER USER app QUOTA 0 ON users;          -- retira a quota
+</code></pre>
+<p>A parte que me surpreendeu: a quota é verificada quando um <strong>extent é alocado</strong>, não quando a tabela é criada. Com a <strong>deferred segment creation</strong> (padrão desde o 11.2), um <code>CREATE TABLE</code> <strong>sem quota funciona</strong>, porque a tabela existe só no dicionário. O erro aparece no <strong>primeiro INSERT</strong>:</p>
+<ul>
+<li><strong>Sem quota:</strong> <code>ORA-01950: no privileges on tablespace &#39;USERS&#39;</code></li>
+<li><strong>Quota acabou:</strong> <code>ORA-01536: space quota exceeded for tablespace</code></li>
+</ul>
+<p>E mais:</p>
+<ul>
+<li>Reduzir a quota <strong>não apaga nada</strong>. Com <code>QUOTA 0</code>, os objetos continuam lá, mas não recebem espaço novo.</li>
+<li>A quota conta <strong>todos os segmentos do dono</strong> naquela tablespace (tabelas, índices, LOBs).</li>
+<li>O privilégio de sistema <strong><code>UNLIMITED TABLESPACE</code></strong> ignora as quotas em <strong>todas</strong> as tablespaces. É poderoso demais para uma conta de aplicação.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/creating-user-accounts.html">Creating User Accounts</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html">CREATE USER</a></p>
+<p><img src="img/posts/1z0-082-p6-quota.svg" alt="Deferred segment creation: o CREATE TABLE funciona sem quota e o erro aparece no primeiro INSERT"></p>
+<h2>5. Profiles: o conjunto de limites da conta</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>Profile é um conjunto nomeado de <strong>limites de senha</strong> e <strong>limites de recurso</strong>.</p>
+<ul>
+<li>Cada usuário tem <strong>exatamente um</strong> profile. Atribuir outro substitui o anterior.</li>
+<li>Profile se atribui <strong>só a usuários</strong>, nunca a roles.</li>
+<li>Quem não recebe profile fica com o <strong>DEFAULT</strong>, que existe em todo banco e <strong>não pode ser removido</strong>.</li>
+<li>Um parâmetro com valor <code>DEFAULT</code> quer dizer &quot;<strong>use o valor atual do profile DEFAULT</strong>&quot;, e não &quot;padrão de fábrica&quot;. Por isso, mudar o profile DEFAULT afeta de uma vez todo mundo que herda dele.</li>
+<li><code>DROP PROFILE</code> de um profile em uso exige <strong><code>CASCADE</code></strong>, e os usuários caem no DEFAULT.</li>
+<li>Mudanças de profile <strong>não afetam sessões abertas</strong>: valem a partir do próximo login.</li>
+</ul>
+<pre><code class="language-sql">CREATE PROFILE app_prof LIMIT
+  FAILED_LOGIN_ATTEMPTS 5
+  PASSWORD_LOCK_TIME    1/24     -- 1 hora
+  PASSWORD_LIFE_TIME    90
+  SESSIONS_PER_USER     20
+  IDLE_TIME             30;      -- minutos
+
+ALTER USER app PROFILE app_prof;
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/configuring-user-resource-limits.html">Configuring User Resource Limits</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PROFILE.html">CREATE PROFILE</a></p>
+<h2>6. Parâmetros de senha</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>Os valores do profile DEFAULT no 19c:</p>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>DEFAULT</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FAILED_LOGIN_ATTEMPTS</code></td>
+<td><strong>10</strong></td>
+<td>Tentativas erradas seguidas até travar</td>
+</tr>
+<tr>
+<td><code>PASSWORD_LOCK_TIME</code></td>
+<td><strong>1</strong> dia</td>
+<td>Tempo travada depois disso</td>
+</tr>
+<tr>
+<td><code>PASSWORD_LIFE_TIME</code></td>
+<td><strong>180</strong> dias</td>
+<td>Validade da senha</td>
+</tr>
+<tr>
+<td><code>PASSWORD_GRACE_TIME</code></td>
+<td><strong>7</strong> dias</td>
+<td>Carência depois de vencer</td>
+</tr>
+<tr>
+<td><code>PASSWORD_REUSE_TIME</code> / <code>PASSWORD_REUSE_MAX</code></td>
+<td>UNLIMITED</td>
+<td>Regras de reuso</td>
+</tr>
+<tr>
+<td><code>INACTIVE_ACCOUNT_TIME</code></td>
+<td>UNLIMITED</td>
+<td>Trava depois de n dias sem login</td>
+</tr>
+</tbody></table>
+<p>Os de tempo são em <strong>dias</strong> e aceitam frações (<code>1/24</code> = 1 hora).</p>
+<p><strong>Travamento:</strong> passou de <code>FAILED_LOGIN_ATTEMPTS</code>, o status vira <strong><code>LOCKED(TIMED)</code></strong> e a conta se destrava sozinha depois de <code>PASSWORD_LOCK_TIME</code>. Se o lock time for <code>UNLIMITED</code>, ou se a conta foi travada à mão com <code>ACCOUNT LOCK</code>, o status é <strong><code>LOCKED</code></strong> e só <code>ALTER USER … ACCOUNT UNLOCK</code> resolve.</p>
+<p><strong>Validade:</strong> vencida a senha, no próximo login o usuário <strong>entra</strong>, recebe o aviso <code>ORA-28002</code> e o status vira <strong><code>EXPIRED(GRACE)</code></strong>. Terminada a carência, o status é <strong><code>EXPIRED</code></strong> e o login pede a troca da senha.</p>
+<p><strong>Reuso:</strong> os dois parâmetros com valor, a senha só volta depois do tempo <strong>e</strong> do número de trocas. <strong>Um com valor e o outro UNLIMITED: a senha nunca pode ser reutilizada.</strong> Os dois UNLIMITED: sem restrição. Essa me pegou no simulado.</p>
+<p><strong>Complexidade:</strong> <code>PASSWORD_VERIFY_FUNCTION</code> aponta para uma função no schema SYS. O <code>catpvf.sql</code> cria as funções da Oracle (como <code>ORA12C_VERIFY_FUNCTION</code>). A verificação não se aplica ao SYS.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/using-password-management-policy.html">Using a Password Management Policy</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PROFILE.html">CREATE PROFILE</a></p>
+<h2>7. Parâmetros de recurso e o RESOURCE_LIMIT</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>Os limites de recurso: <code>SESSIONS_PER_USER</code>, <code>CPU_PER_SESSION</code> e <code>CPU_PER_CALL</code> (em <strong>centésimos de segundo</strong>), <code>CONNECT_TIME</code> e <code>IDLE_TIME</code> (em <strong>minutos</strong>), <code>LOGICAL_READS_PER_SESSION</code> e <code>LOGICAL_READS_PER_CALL</code> (em blocos), <code>PRIVATE_SGA</code> (só relevante em shared server) e <code>COMPOSITE_LIMIT</code>.</p>
+<p>A pegadinha clássica:</p>
+<ul>
+<li><strong><code>RESOURCE_LIMIT</code></strong> liga e desliga <strong>só os limites de recurso</strong>. No 19c o padrão é <code>TRUE</code> e o parâmetro é dinâmico.</li>
+<li>Os limites de <strong>senha valem sempre</strong>, mesmo com <code>RESOURCE_LIMIT = FALSE</code>.</li>
+</ul>
+<p>O que acontece ao estourar:</p>
+<table>
+<thead>
+<tr>
+<th>Limite</th>
+<th>Efeito</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>De <strong>call</strong> (<code>CPU_PER_CALL</code>, <code>LOGICAL_READS_PER_CALL</code>)</td>
+<td>Desfaz <strong>só o comando</strong>; transação e sessão continuam</td>
+</tr>
+<tr>
+<td>De <strong>sessão</strong> (<code>CPU_PER_SESSION</code>, …)</td>
+<td>Desfaz o comando; o usuário só pode dar COMMIT, ROLLBACK ou desconectar</td>
+</tr>
+<tr>
+<td><code>CONNECT_TIME</code> / <code>IDLE_TIME</code></td>
+<td>Desfaz a transação e <strong>encerra a sessão</strong></td>
+</tr>
+<tr>
+<td><code>SESSIONS_PER_USER</code></td>
+<td>Recusa o login excedente</td>
+</tr>
+</tbody></table>
+<p><code>IDLE_TIME</code> mede tempo <strong>sem calls</strong>: não derruba uma consulta longa que está rodando. Para governança de CPU de verdade, a Oracle recomenda o <strong>Database Resource Manager</strong>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/configuring-user-resource-limits.html">Configuring User Resource Limits</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PROFILE.html">CREATE PROFILE</a></p>
+<h2>8. Menor privilégio, na prática</h2>
+<p class="topico-exame">Creating and Managing Users</p>
+
+<p>A recomendação da documentação é dar a cada usuário <strong>só o que ele precisa</strong>, de preferência por roles e não direto na conta. Na minha rotina, isso virou:</p>
+<ul>
+<li>Evitar privilégios <strong><code>ANY</code></strong> (<code>CREATE ANY PROCEDURE</code>, <code>DROP ANY TABLE</code>…) em contas de aplicação.</li>
+<li>Não dar <code>UNLIMITED TABLESPACE</code>; dar <strong>quota</strong> na tablespace certa.</li>
+<li>Criar <strong>roles próprias por função</strong> em vez de usar <code>CONNECT</code>, <code>RESOURCE</code> e <code>DBA</code>, que existem por compatibilidade.</li>
+<li>Cuidado com <strong>PUBLIC</strong>: o que é concedido a ele vale para todo usuário, inclusive os que ainda vão ser criados.</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/guidelines-securing-user-accounts-and-privileges.html">Guidelines for Securing User Accounts and Privileges</a></p>
+<h2>Laboratório: para você fazer no seu 19c</h2>
+<p>Conecte como SYSDBA e entre numa PDB de teste (<code>ALTER SESSION SET CONTAINER = orclpdb1;</code>). Troque <code>orclpdb1</code> pelo nome da sua PDB. <strong>Só em laboratório.</strong> Cada bloco tem um botão <strong>Copiar</strong>.</p>
+<p><strong>Passo 1 — O retrato do banco e do profile DEFAULT.</strong></p>
+<pre><code class="language-sql">SELECT property_name, property_value FROM database_properties
+ WHERE property_name LIKE &#39;DEFAULT_%TABLESPACE&#39;;
+SHOW PARAMETER resource_limit
+SELECT resource_name, resource_type, limit FROM dba_profiles
+ WHERE profile = &#39;DEFAULT&#39; ORDER BY resource_type, resource_name;
+</code></pre>
+<p><strong>Passo 2 — Criar o usuário sem quota.</strong> O SQL*Plus pede a senha sem mostrar na tela.</p>
+<pre><code class="language-sql">ACCEPT senha CHAR PROMPT &#39;Senha para LAB06: &#39; HIDE
+CREATE USER lab06 IDENTIFIED BY &quot;&amp;senha&quot;
+  DEFAULT TABLESPACE users TEMPORARY TABLESPACE temp;
+SELECT username, account_status, default_tablespace, profile, common
+  FROM dba_users WHERE username = &#39;LAB06&#39;;
+</code></pre>
+<p>Tente conectar como <code>lab06</code> em outro terminal: <code>ORA-01045</code>.</p>
+<p><strong>Passo 3 — CREATE TABLE funciona, INSERT falha.</strong></p>
+<pre><code class="language-sql">GRANT CREATE SESSION, CREATE TABLE TO lab06;
+-- conectado como lab06:
+CREATE TABLE t (id NUMBER);
+INSERT INTO t VALUES (1);   -- ORA-01950
+</code></pre>
+<p><strong>Passo 4 — Dar quota e tentar de novo.</strong></p>
+<pre><code class="language-sql">ALTER USER lab06 QUOTA 5M ON users;
+-- como lab06:
+INSERT INTO t VALUES (1);
+COMMIT;
+</code></pre>
+<p><strong>Passo 5 — Profile que trava rápido.</strong></p>
+<pre><code class="language-sql">CREATE PROFILE lab_prof LIMIT FAILED_LOGIN_ATTEMPTS 3 PASSWORD_LOCK_TIME 1/1440;
+ALTER USER lab06 PROFILE lab_prof;
+</code></pre>
+<p>Erre a senha de <code>lab06</code> três vezes e confira:</p>
+<pre><code class="language-sql">SELECT username, account_status, lock_date, profile
+  FROM dba_users WHERE username = &#39;LAB06&#39;;
+</code></pre>
+<p>O status deve aparecer como <code>LOCKED(TIMED)</code>. Espere um minuto ou destrave com <code>ALTER USER lab06 ACCOUNT UNLOCK;</code>.</p>
+<p><strong>Passo 6 — Limpeza.</strong></p>
+<pre><code class="language-sql">DROP USER lab06 CASCADE;
+DROP PROFILE lab_prof;
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/creating-user-accounts.html">Creating User Accounts</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PROFILE.html">CREATE PROFILE</a></p>
+<h2>Pontos de atenção que encontrei nos simulados</h2>
+<ul>
+<li>Usuário novo <strong>não conecta</strong> sem <code>CREATE SESSION</code> (<code>ORA-01045</code>).</li>
+<li>Sem <code>DEFAULT TABLESPACE</code>, vale a do banco; sem ela, <strong>SYSTEM</strong>.</li>
+<li>Default tablespace <strong>não dá quota</strong>. Sem quota, o erro aparece no <strong>primeiro INSERT</strong> (<code>ORA-01950</code>), não no <code>CREATE TABLE</code>.</li>
+<li><strong>Não existe quota</strong> na temporary tablespace.</li>
+<li><code>QUOTA 0</code> <strong>não apaga</strong> objetos.</li>
+<li>Usuário comum: <strong><code>C##</code></strong>, criado no root, <code>CONTAINER=ALL</code>. Local: na PDB, sem <code>C##</code>.</li>
+<li>Profile se atribui <strong>só a usuários</strong>; o DEFAULT <strong>não pode</strong> ser removido.</li>
+<li><code>DEFAULT</code> num parâmetro = <strong>valor atual do profile DEFAULT</strong>.</li>
+<li><code>DROP PROFILE</code> em uso exige <strong><code>CASCADE</code></strong>; os usuários vão para o DEFAULT.</li>
+<li>Padrões: <strong>10</strong> tentativas, <strong>1</strong> dia travada, <strong>180</strong> dias de validade, <strong>7</strong> de carência.</li>
+<li><code>LOCKED(TIMED)</code> destrava sozinha; <code>LOCKED</code> só com <code>ACCOUNT UNLOCK</code>.</li>
+<li>Reuso: <strong>um com valor e o outro UNLIMITED = nunca reutiliza</strong>.</li>
+<li><code>RESOURCE_LIMIT = FALSE</code> <strong>não desliga</strong> os limites de senha.</li>
+<li>CPU em <strong>centésimos de segundo</strong>; <code>IDLE_TIME</code> e <code>CONNECT_TIME</code> em <strong>minutos</strong>.</li>
+</ul>
+<h2>Resumo em 5 linhas</h2>
+<ol>
+<li><code>CREATE USER</code> + <code>CREATE SESSION</code> é o mínimo; cada cláusula omitida tem um padrão que cai na prova.</li>
+<li>Num CDB, <strong>comum</strong> (<code>C##</code>, no root, em todas as PDBs) × <strong>local</strong> (só numa PDB).</li>
+<li>Default tablespace diz <strong>onde</strong>; quota diz <strong>quanto</strong>. Sem quota, o erro só aparece no INSERT.</li>
+<li>Profile = limites de <strong>senha</strong> (sempre ativos) + limites de <strong>recurso</strong> (dependem do <code>RESOURCE_LIMIT</code>).</li>
+<li>Menor privilégio: roles próprias, quota em vez de <code>UNLIMITED TABLESPACE</code>, nada de <code>ANY</code> para aplicação.</li>
+</ol>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Security Guide</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/creating-user-accounts.html">Creating User Accounts</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/configuring-user-resource-limits.html">Configuring User Resource Limits</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/using-password-management-policy.html">Using a Password Management Policy</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/guidelines-securing-user-accounts-and-privileges.html">Guidelines for Securing User Accounts and Privileges</a></li>
+</ul>
+<p><strong>SQL Language Reference</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html">CREATE USER</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-USER.html">ALTER USER</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PROFILE.html">CREATE PROFILE</a></li>
+</ul>
+<hr>
+<h2>Próximo artigo</h2>
+<p>Na <strong>Parte 7</strong> do Guia 1Z0-082, o assunto continua em segurança: <strong>privilégios de sistema e de objeto, roles, <code>WITH ADMIN OPTION</code> × <code>WITH GRANT OPTION</code></strong> e o que acontece (ou não) em cascata quando você dá um <code>REVOKE</code>.</p>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js"></script><script src="layout.js"></script><script src="post.js"></script></body></html>
