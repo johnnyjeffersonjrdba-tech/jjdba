@@ -1,0 +1,274 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="../">
+<title>PFILE, SPFILE e o SCOPE do ALTER SYSTEM (1Z0-082 · Parte 5) · JJ DBA</title>
+<meta name="description" content="Spfile × pfile, a ordem de busca do STARTUP, MEMORY/SPFILE/BOTH, parâmetros estáticos e DEFERRED, CREATE PFILE/SPFILE FROM MEMORY e como recuperar um banco que não sobe por causa de um parâmetro — com diagrama, laboratório e a documentação oficial do 19c.">
+<meta name="keywords" content="Oracle, DBA, DBA, CERTIFICAÇÃO">
+<meta name="author" content="Johnny Jefferson Jr.">
+<link rel="canonical" href="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/pfile-spfile-scope-oracle.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="JJ DBA">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="PFILE, SPFILE e o SCOPE do ALTER SYSTEM (1Z0-082 · Parte 5)">
+<meta property="og:description" content="Spfile × pfile, a ordem de busca do STARTUP, MEMORY/SPFILE/BOTH, parâmetros estáticos e DEFERRED, CREATE PFILE/SPFILE FROM MEMORY e como recuperar um banco que não sobe por causa de um parâmetro — com diagrama, laboratório e a documentação oficial do 19c.">
+<meta property="og:url" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/pfile-spfile-scope-oracle.html">
+<meta property="og:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/pfile-spfile-scope-oracle.png">
+<meta property="article:published_time" content="2026-10-16">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PFILE, SPFILE e o SCOPE do ALTER SYSTEM (1Z0-082 · Parte 5)">
+<meta name="twitter:description" content="Spfile × pfile, a ordem de busca do STARTUP, MEMORY/SPFILE/BOTH, parâmetros estáticos e DEFERRED, CREATE PFILE/SPFILE FROM MEMORY e como recuperar um banco que não sobe por causa de um parâmetro — com diagrama, laboratório e a documentação oficial do 19c.">
+<meta name="twitter:image" content="https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/pfile-spfile-scope-oracle.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"PFILE, SPFILE e o SCOPE do ALTER SYSTEM (1Z0-082 · Parte 5)","description":"Spfile × pfile, a ordem de busca do STARTUP, MEMORY/SPFILE/BOTH, parâmetros estáticos e DEFERRED, CREATE PFILE/SPFILE FROM MEMORY e como recuperar um banco que não sobe por causa de um parâmetro — com diagrama, laboratório e a documentação oficial do 19c.","datePublished":"2026-10-16","image":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/img/og/pfile-spfile-scope-oracle.png","url":"https://johnnyjeffersonjrdba-tech.github.io/jjdba/posts/pfile-spfile-scope-oracle.html","inLanguage":"pt-BR","keywords":"DBA, CERTIFICAÇÃO","author":{"@type":"Person","name":"Johnny Jefferson Jr.","url":"https://www.linkedin.com/in/johnny-jeffersonjr/"}}</script>
+<link rel="stylesheet" href="style.css"></head><body>
+<main class="wrap"><article id="a" data-id="pfile-spfile-scope-oracle" style="padding:32px 0"><span class="tag">Estudo</span><span class="meta">16 de outubro de 2026<span id="visitas" hidden data-fmt=" · 👁 {n} visualizações"></span></span><h1>PFILE, SPFILE e o SCOPE do ALTER SYSTEM (1Z0-082 · Parte 5)</h1><img class="capa-post" src="img/posts/capa-1z0-082-parte-5.svg" alt="PFILE, SPFILE e o SCOPE do ALTER SYSTEM (1Z0-082 · Parte 5)"><span class="chip">DBA</span><span class="chip">CERTIFICAÇÃO</span>
+<p>Quinta parte do <strong>Guia 1Z0-082</strong>. Na <a href="post.html?id=dicionario-vdollar-adr-oracle">Parte 4</a> vimos onde o DBA busca informação: dicionário, <code>V$</code> e ADR. Agora o assunto é <strong>o arquivo que a instância lê antes de tudo</strong>: os <strong>arquivos de parâmetros</strong>. Spfile × pfile, a ordem em que o <code>STARTUP</code> procura cada um, o <code>SCOPE</code> do <code>ALTER SYSTEM</code> e como sair de um parâmetro errado sem pânico.</p>
+<p>Confesso que este foi o dia em que entendi por que, no passado, eu mudava um parâmetro e ele &quot;sumia&quot; depois do restart.</p>
+<blockquote>
+<p>Cada afirmação técnica deste artigo foi conferida na documentação oficial do <strong>Oracle Database 19c</strong>. Os links estão em cada seção e reunidos no final.</p>
+</blockquote>
+<h2>1. Por que existe um arquivo de parâmetros</h2>
+<p class="topico-exame">Managing Initialization Parameter Files</p>
+
+<p>Lembra do estágio <strong>NOMOUNT</strong> da Parte 3? A primeira coisa que a instância faz é <strong>ler os parâmetros de inicialização</strong>. É com eles que ela sabe o tamanho da SGA, onde estão os control files (<code>CONTROL_FILES</code>), o nome do banco (<code>DB_NAME</code>), o <code>DIAGNOSTIC_DEST</code> e tudo mais. Sem esse arquivo, a instância nem chega a nascer.</p>
+<p>Esse arquivo pode ter dois formatos:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>PFILE</strong> (text initialization parameter file)</th>
+<th><strong>SPFILE</strong> (server parameter file)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Formato</td>
+<td>Texto</td>
+<td>Binário</td>
+</tr>
+<tr>
+<td>Quem edita</td>
+<td>Você, num editor de texto</td>
+<td>O próprio Oracle, via <code>ALTER SYSTEM</code></td>
+</tr>
+<tr>
+<td>Mudança com <code>ALTER SYSTEM</code> sobrevive ao restart?</td>
+<td><strong>Não</strong></td>
+<td><strong>Sim</strong> (com <code>SCOPE=SPFILE</code> ou <code>BOTH</code>)</td>
+</tr>
+<tr>
+<td>Nome padrão</td>
+<td><code>init&lt;SID&gt;.ora</code></td>
+<td><code>spfile&lt;SID&gt;.ora</code></td>
+</tr>
+<tr>
+<td>Recomendado pela Oracle</td>
+<td>—</td>
+<td><strong>Sim</strong></td>
+</tr>
+</tbody></table>
+<p>O spfile <strong>não pode ser editado num editor de texto</strong>. Abrir no <code>vi</code> e salvar é um jeito clássico de corromper o arquivo. Para mudar, use <code>ALTER SYSTEM</code>; para ler, use <code>V$SPPARAMETER</code> ou gere um pfile a partir dele.</p>
+<p>No Linux, os dois ficam por padrão em <code>$ORACLE_HOME/dbs</code>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html">Managing Initialization Parameters Using a Server Parameter File</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/SPFILE.html">SPFILE</a></p>
+<h2>2. A ordem de busca no STARTUP</h2>
+<p class="topico-exame">Managing Initialization Parameter Files</p>
+
+<p>Quando você dá <code>STARTUP</code> <strong>sem</strong> informar arquivo, a instância procura, nesta ordem:</p>
+<ol>
+<li><code>spfile&lt;SID&gt;.ora</code></li>
+<li><code>spfile.ora</code></li>
+<li><code>init&lt;SID&gt;.ora</code></li>
+</ol>
+<p>Para no <strong>primeiro</strong> que encontrar. Ou seja: se existe um spfile, o pfile do mesmo diretório é <strong>ignorado</strong>, mesmo que você tenha acabado de editá-lo. Essa me pegou.</p>
+<p><img src="img/posts/1z0-082-p5-spfile.svg" alt="Ordem de busca do STARTUP e o efeito de cada SCOPE do ALTER SYSTEM"></p>
+<p>Para subir com um pfile específico:</p>
+<pre><code class="language-sql">STARTUP PFILE=&#39;/u01/app/oracle/dbs/initteste.ora&#39;
+</code></pre>
+<p>O comando <code>STARTUP</code> do SQL*Plus aceita <code>PFILE=</code>, mas <strong>não</strong> tem uma opção <code>SPFILE=</code>. Para usar um spfile fora do lugar padrão, o caminho é um pfile com uma única linha, <code>SPFILE=&#39;/caminho/spfileXYZ.ora&#39;</code>, e subir com ele.</p>
+<p>Para saber com qual arquivo a instância subiu:</p>
+<pre><code class="language-sql">SHOW PARAMETER spfile
+</code></pre>
+<p>Valor vazio = a instância subiu com <strong>pfile</strong>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html">Managing Initialization Parameters Using a Server Parameter File</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/STARTUP.html">STARTUP (SQL*Plus)</a></p>
+<h2>3. ALTER SYSTEM e o SCOPE</h2>
+<p class="topico-exame">Managing Initialization Parameter Files</p>
+
+<p>Esta é a parte que mais cai. O <code>SCOPE</code> diz <strong>onde</strong> a mudança vale:</p>
+<table>
+<thead>
+<tr>
+<th>SCOPE</th>
+<th>Vale agora?</th>
+<th>Vale depois do restart?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>MEMORY</code></td>
+<td>Sim</td>
+<td>Não</td>
+</tr>
+<tr>
+<td><code>SPFILE</code></td>
+<td>Não</td>
+<td>Sim</td>
+</tr>
+<tr>
+<td><code>BOTH</code></td>
+<td>Sim</td>
+<td>Sim</td>
+</tr>
+</tbody></table>
+<p>E o que eu precisei decorar:</p>
+<ul>
+<li><strong>Sem <code>SCOPE</code></strong>, o padrão é <strong><code>BOTH</code></strong> se a instância subiu com spfile, e <strong><code>MEMORY</code></strong> se subiu com pfile.</li>
+<li>Se a instância subiu com <strong>pfile</strong>, <code>SCOPE=SPFILE</code> e <code>SCOPE=BOTH</code> <strong>dão erro</strong>: não há spfile para gravar.</li>
+<li>Parâmetro <strong>estático</strong> não muda em memória: só aceita <strong><code>SCOPE=SPFILE</code></strong>, e a mudança vale no próximo startup.</li>
+<li>Com <code>SCOPE=SPFILE</code> ou <code>BOTH</code>, dá para gravar um comentário junto: <code>COMMENT=&#39;motivo da mudança&#39;</code>. Recomendo fazer isso sempre.</li>
+</ul>
+<pre><code class="language-sql">ALTER SYSTEM SET open_cursors = 500 SCOPE=BOTH COMMENT=&#39;chamado 1234&#39;;
+ALTER SYSTEM SET processes   = 600 SCOPE=SPFILE;   -- estático: vale no próximo startup
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-SYSTEM.html">ALTER SYSTEM</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html">Managing Initialization Parameters Using a Server Parameter File</a></p>
+<h2>4. Estático, dinâmico e DEFERRED: como saber</h2>
+<p class="topico-exame">Managing Initialization Parameter Files</p>
+
+<p>Não precisa decorar parâmetro por parâmetro. A <code>V$PARAMETER</code> responde:</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>O que diz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ISSES_MODIFIABLE</code></td>
+<td><code>TRUE</code>: pode mudar só na sua sessão com <code>ALTER SESSION</code></td>
+</tr>
+<tr>
+<td><code>ISSYS_MODIFIABLE</code></td>
+<td><code>IMMEDIATE</code>: muda já · <code>DEFERRED</code>: só para sessões novas · <code>FALSE</code>: estático</td>
+</tr>
+<tr>
+<td><code>ISPDB_MODIFIABLE</code></td>
+<td><code>TRUE</code>: pode ter valor próprio em cada PDB</td>
+</tr>
+<tr>
+<td><code>ISDEFAULT</code> / <code>ISMODIFIED</code></td>
+<td>Se está no valor padrão e se foi alterado depois do startup</td>
+</tr>
+</tbody></table>
+<p>Quando <code>ISSYS_MODIFIABLE = DEFERRED</code>, a palavra <strong><code>DEFERRED</code> é obrigatória</strong> no <code>ALTER SYSTEM</code>: o novo valor vale para as sessões que conectarem depois, e as atuais ficam com o antigo.</p>
+<p>E as três views que confundem:</p>
+<ul>
+<li><strong><code>V$PARAMETER</code></strong>: valores em vigor <strong>na sua sessão</strong>.</li>
+<li><strong><code>V$SYSTEM_PARAMETER</code></strong>: valores em vigor <strong>na instância</strong>.</li>
+<li><strong><code>V$SPPARAMETER</code></strong>: o que está <strong>gravado no spfile</strong> (se a instância subiu com pfile, a coluna <code>ISSPECIFIED</code> vem toda <code>FALSE</code>).</li>
+</ul>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-PARAMETER.html">V$PARAMETER</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SYSTEM_PARAMETER.html">V$SYSTEM_PARAMETER</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SPPARAMETER.html">V$SPPARAMETER</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-SYSTEM.html">ALTER SYSTEM</a></p>
+<h2>5. CREATE PFILE, CREATE SPFILE e FROM MEMORY</h2>
+<p class="topico-exame">Managing Initialization Parameter Files</p>
+
+<p>Os comandos para ir de um formato ao outro:</p>
+<pre><code class="language-sql">CREATE PFILE FROM SPFILE;                         -- cópia legível do spfile
+CREATE SPFILE FROM PFILE;                         -- (re)cria o spfile a partir do texto
+CREATE PFILE=&#39;/tmp/init_agora.ora&#39; FROM MEMORY;   -- foto dos valores em uso
+CREATE SPFILE FROM MEMORY;                        -- recria o spfile com o que está em memória
+</code></pre>
+<ul>
+<li>Exigem <strong>SYSDBA, SYSOPER, SYSBACKUP ou SYSDG</strong>. Num CDB, só no <strong>root</strong>.</li>
+<li>Funcionam até com a instância <strong>parada</strong> (menos o <code>FROM MEMORY</code>, que precisa dela no ar).</li>
+<li>Sem caminho, usam o nome e o diretório padrão.</li>
+<li>Não dá para sobrescrever o spfile que a instância <strong>está usando</strong> com <code>CREATE SPFILE FROM PFILE</code>: gere com outro nome ou faça com a instância parada.</li>
+</ul>
+<p>O <code>FROM MEMORY</code> é o salva-vidas de quando o spfile se perde com o banco no ar.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PFILE.html">CREATE PFILE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-SPFILE.html">CREATE SPFILE</a></p>
+<h2>6. Desfazendo: ALTER SYSTEM RESET</h2>
+<p class="topico-exame">Managing Initialization Parameter Files</p>
+
+<p>Para tirar um parâmetro do spfile e voltar ao padrão, use <code>RESET</code>, e não <code>SET</code> com o valor que você &quot;acha&quot; que é o padrão:</p>
+<pre><code class="language-sql">ALTER SYSTEM RESET open_cursors SCOPE=SPFILE;
+</code></pre>
+<p>Com <code>SCOPE=SPFILE</code>, o parâmetro sai do spfile e o padrão vale a partir do próximo startup.</p>
+<p><strong>Num CDB:</strong> quando um parâmetro com <code>ISPDB_MODIFIABLE = TRUE</code> é alterado dentro de uma PDB, o valor fica guardado <strong>na própria PDB</strong>, e não no spfile do CDB. Um <code>RESET</code> dentro da PDB faz ela voltar a <strong>herdar o valor do root</strong>.</p>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-SYSTEM.html">ALTER SYSTEM</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html">Managing Initialization Parameters Using a Server Parameter File</a></p>
+<h2>7. O caso real: o banco não sobe por causa de um parâmetro</h2>
+<p>Esse é o cenário que justifica tudo acima. Alguém faz <code>ALTER SYSTEM SET ... SCOPE=SPFILE</code> com um valor inválido, e no próximo restart a instância não passa do NOMOUNT. Como o spfile é binário, não dá para &quot;abrir e corrigir&quot;. O roteiro:</p>
+<ol>
+<li><code>CREATE PFILE=&#39;/tmp/conserto.ora&#39; FROM SPFILE;</code> (funciona com a instância parada)</li>
+<li>Corrigir a linha no <code>/tmp/conserto.ora</code> com um editor.</li>
+<li><code>STARTUP PFILE=&#39;/tmp/conserto.ora&#39;</code></li>
+<li>Com o banco no ar, <code>CREATE SPFILE FROM PFILE=&#39;/tmp/conserto.ora&#39;;</code> e, num próximo restart, voltar a usar o spfile.</li>
+</ol>
+<p>Por isso mesmo, antes de qualquer mudança com <code>SCOPE=SPFILE</code>, eu faço um <code>CREATE PFILE=&#39;/backup/init_antes.ora&#39; FROM SPFILE;</code>. Custa um segundo.</p>
+<h2>Laboratório: para você fazer no seu 19c</h2>
+<p>Conecte como <code>sqlplus / as sysdba</code> no <code>CDB$ROOT</code>. Use um ambiente de teste. Cada bloco tem um botão <strong>Copiar</strong>.</p>
+<p><strong>Passo 1 — Com qual arquivo a instância subiu?</strong></p>
+<pre><code class="language-sql">SHOW PARAMETER spfile
+</code></pre>
+<p><strong>Passo 2 — Estático ou dinâmico?</strong></p>
+<pre><code class="language-sql">SELECT name, isses_modifiable, issys_modifiable, ispdb_modifiable, isdefault
+FROM   v$parameter
+WHERE  name IN (&#39;processes&#39;, &#39;open_cursors&#39;, &#39;sort_area_size&#39;, &#39;sga_target&#39;);
+</code></pre>
+<p><strong>Passo 3 — Os três SCOPEs.</strong> Compare a memória e o spfile depois de cada comando.</p>
+<pre><code class="language-sql">ALTER SYSTEM SET open_cursors = 400 SCOPE=MEMORY;
+ALTER SYSTEM SET open_cursors = 450 SCOPE=SPFILE COMMENT=&#39;lab parte 5&#39;;
+SELECT value FROM v$system_parameter WHERE name = &#39;open_cursors&#39;;
+SELECT value, update_comment FROM v$spparameter WHERE name = &#39;open_cursors&#39;;
+</code></pre>
+<p><strong>Passo 4 — O erro do parâmetro estático.</strong> Tente mudar em memória e veja o erro.</p>
+<pre><code class="language-sql">ALTER SYSTEM SET processes = 400 SCOPE=MEMORY;
+</code></pre>
+<p><strong>Passo 5 — Cópias de segurança.</strong></p>
+<pre><code class="language-sql">CREATE PFILE=&#39;/tmp/init_lab.ora&#39; FROM SPFILE;
+CREATE PFILE=&#39;/tmp/init_mem.ora&#39; FROM MEMORY;
+</code></pre>
+<p><strong>Passo 6 — Ler e comparar no shell.</strong></p>
+<pre><code class="language-bash">grep -i open_cursors /tmp/init_lab.ora /tmp/init_mem.ora
+</code></pre>
+<p><strong>Passo 7 — Desfazer.</strong></p>
+<pre><code class="language-sql">ALTER SYSTEM RESET open_cursors SCOPE=SPFILE;
+ALTER SYSTEM SET open_cursors = 300 SCOPE=MEMORY;   -- ou o valor que estava no passo 2
+</code></pre>
+<p>📖 Fontes: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-SYSTEM.html">ALTER SYSTEM</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PFILE.html">CREATE PFILE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SPPARAMETER.html">V$SPPARAMETER</a></p>
+<h2>Pontos de atenção que encontrei nos simulados</h2>
+<ul>
+<li>Ordem de busca: <strong><code>spfile&lt;SID&gt;.ora</code> → <code>spfile.ora</code> → <code>init&lt;SID&gt;.ora</code></strong>. Existindo spfile, o pfile é ignorado.</li>
+<li>Spfile é <strong>binário</strong>: não se edita com editor de texto.</li>
+<li><code>SHOW PARAMETER spfile</code> vazio = instância subiu com <strong>pfile</strong>.</li>
+<li>Sem <code>SCOPE</code>: <strong><code>BOTH</code></strong> com spfile, <strong><code>MEMORY</code></strong> com pfile.</li>
+<li>Subiu com pfile: <code>SCOPE=SPFILE</code> e <code>SCOPE=BOTH</code> <strong>falham</strong>.</li>
+<li>Parâmetro <strong>estático</strong>: só <code>SCOPE=SPFILE</code> + restart.</li>
+<li><code>ISSYS_MODIFIABLE = DEFERRED</code> exige a palavra <strong><code>DEFERRED</code></strong>; vale para <strong>sessões novas</strong>.</li>
+<li><code>V$PARAMETER</code> = sessão · <code>V$SYSTEM_PARAMETER</code> = instância · <code>V$SPPARAMETER</code> = conteúdo do spfile.</li>
+<li><code>CREATE PFILE/SPFILE</code> exige <strong>SYSDBA/SYSOPER/SYSBACKUP/SYSDG</strong> e funciona com a instância parada (exceto <code>FROM MEMORY</code>).</li>
+<li><code>STARTUP</code> aceita <code>PFILE=</code>, mas <strong>não</strong> <code>SPFILE=</code>.</li>
+</ul>
+<h2>Resumo em 5 linhas</h2>
+<ol>
+<li>A instância lê os parâmetros no <strong>NOMOUNT</strong>: spfile (binário, recomendado) ou pfile (texto).</li>
+<li>A busca é <strong><code>spfile&lt;SID&gt;</code> → <code>spfile</code> → <code>init&lt;SID&gt;</code></strong>, e para no primeiro que encontrar.</li>
+<li><code>SCOPE</code>: <strong>MEMORY</strong> (agora), <strong>SPFILE</strong> (próximo startup), <strong>BOTH</strong> (os dois); estático só aceita SPFILE.</li>
+<li>A <code>V$PARAMETER</code> diz se o parâmetro é de sessão, imediato, deferred ou estático.</li>
+<li><code>CREATE PFILE FROM SPFILE</code> antes de mexer, e <code>RESET</code> para voltar ao padrão.</li>
+</ol>
+<h2>Referências oficiais (Oracle Database 19c)</h2>
+<p><strong>Administrator&#39;s Guide e SQL*Plus</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html">Managing Initialization Parameters Using a Server Parameter File</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/STARTUP.html">STARTUP (SQL*Plus)</a></li>
+</ul>
+<p><strong>SQL Language Reference</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ALTER-SYSTEM.html">ALTER SYSTEM</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-PFILE.html">CREATE PFILE</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-SPFILE.html">CREATE SPFILE</a></li>
+</ul>
+<p><strong>Database Reference</strong></p>
+<ul>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/SPFILE.html">SPFILE</a></li>
+<li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-PARAMETER.html">V$PARAMETER</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SYSTEM_PARAMETER.html">V$SYSTEM_PARAMETER</a> · <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SPPARAMETER.html">V$SPPARAMETER</a></li>
+</ul>
+<hr>
+<h2>Próximo artigo</h2>
+<p>Na <strong>Parte 6</strong> do Guia 1Z0-082, começa a parte de segurança: <strong>usuários, profiles e quotas</strong>. Como criar um usuário do jeito certo, o que acontece sem quota na tablespace e como um profile pode travar a conta da aplicação.</p>
+<h2>Ficou com alguma dúvida?</h2>
+<p>Se algum ponto deste artigo não ficou claro, ou se você está passando por algo parecido no seu ambiente Oracle, me chama no <a href="https://www.linkedin.com/in/johnny-jeffersonjr/">LinkedIn</a>. Vou ter prazer em ajudar no que eu puder.</p>
+</article><a class="btn noprint" href="blog.html">← Todos os posts</a></main>
+<script src="posts.js"></script><script src="layout.js"></script><script src="post.js"></script></body></html>
