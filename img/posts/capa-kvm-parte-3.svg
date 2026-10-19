@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#39ff88" stroke-opacity=".06"/></pattern></defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#grid)"/>
+  <text x="48" y="62" font-size="20" fill="#39ff88">NA PRÁTICA · ORACLE 19c NO KVM · PARTE 3/3</text>
+  <text x="48" y="124" font-family="Arial Black, Arial" font-weight="900" font-size="52" fill="#fff">Bases DEV/HML com snapshots</text>
+  <text x="48" y="164" font-size="18" fill="#7f9686">ACFS copy-on-write · CREATE CONTROLFILE · Instance Caging · refresh</text>
+  <rect x="32" y="240" width="1216" height="288" rx="12" fill="#0b120e" stroke="#39ff8844"/>
+  <text x="48" y="300" font-size="30" fill="#ffcf5f">$ acfsutil snap create -w dev1 /u02/oradata</text><text x="48" y="362" font-size="30" fill="#39ff88">SQL> @ctl_dev1.sql   -- CREATE CONTROLFILE</text><text x="48" y="424" font-size="30" fill="#5fd3ff">SQL> ALTER DATABASE OPEN RESETLOGS;</text><text x="48" y="486" font-size="30" fill="#e6ede8">PDBDEV1 → READ WRITE  (só o que mudou ocupa disco)</text>
+  <text x="1232" y="700" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>
