@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Consolas, 'JetBrains Mono', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1a12"/><stop offset="1" stop-color="#05070a"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#39ff88" stroke-opacity=".06"/></pattern>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#39ff88"/></marker>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><rect width="1280" height="720" fill="url(#grid)"/>
+  <text x="48" y="62" font-size="20" fill="#39ff88">NA PRÁTICA · DATA GUARD 19c + EXADATA</text>
+  <text x="48" y="114" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="#fff">Standby para BI + snapshots DEV</text>
+  <text x="48" y="150" font-size="18" fill="#7f9686">READ ONLY WITH APPLY · sparse test master · Exadata Snapshots no ASM</text>
+  <g fill="none" stroke-width="5">
+    <ellipse cx="200" cy="330" rx="100" ry="30" stroke="#39ff88"/><path d="M100 330v170c0 17 45 30 100 30s100-13 100-30V330" stroke="#39ff88"/>
+    <ellipse cx="620" cy="330" rx="100" ry="30" stroke="#5fd3ff"/><path d="M520 330v170c0 17 45 30 100 30s100-13 100-30V330" stroke="#5fd3ff"/>
+  </g>
+  <text x="200" y="580" text-anchor="middle" font-size="22" font-weight="700" fill="#39ff88">PRIMÁRIO</text>
+  <text x="620" y="580" text-anchor="middle" font-size="22" font-weight="700" fill="#5fd3ff">STANDBY · BI</text>
+  <text x="620" y="606" text-anchor="middle" font-size="15" fill="#7f9686">READ ONLY WITH APPLY</text>
+  <path d="M305 370 H510" stroke="#39ff88" stroke-width="4" stroke-dasharray="14 10" marker-end="url(#g)"/>
+  <text x="408" y="352" text-anchor="middle" font-size="18" font-weight="700" fill="#39ff88">redo</text>
+  <g font-size="18" font-weight="700">
+    <rect x="900" y="260" width="300" height="70" rx="10" fill="#121a15" stroke="#ffcf5f" stroke-width="2"/><text x="1050" y="302" text-anchor="middle" fill="#ffcf5f">snapshot DEV</text>
+    <rect x="900" y="360" width="300" height="70" rx="10" fill="#121a15" stroke="#ffcf5f" stroke-width="2"/><text x="1050" y="402" text-anchor="middle" fill="#ffcf5f">snapshot HML</text>
+    <rect x="900" y="460" width="300" height="70" rx="10" fill="#121a15" stroke="#ffcf5f" stroke-width="2" stroke-dasharray="8 6"/><text x="1050" y="502" text-anchor="middle" fill="#ffcf5f88">+SPARSE</text>
+  </g>
+  <path d="M725 380 H890" stroke="#ffcf5f" stroke-width="3" marker-end="url(#g)"/>
+  <text x="1232" y="700" text-anchor="end" font-size="14" fill="#ffffff55">jj_dba</text>
+</svg>
