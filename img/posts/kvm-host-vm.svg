@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" font-family="Consolas, 'JetBrains Mono', monospace">
+  <rect width="1000" height="560" rx="14" fill="#0b120e"/>
+  <!-- hardware -->
+  <rect x="30" y="480" width="940" height="56" rx="8" fill="#1b2420" stroke="#7f9686"/>
+  <text x="500" y="505" text-anchor="middle" font-size="17" fill="#e6ede8" font-weight="700">HARDWARE FÍSICO</text>
+  <text x="500" y="526" text-anchor="middle" font-size="14" fill="#7f9686">CPU com VT-x/AMD-V · RAM · discos · placa de rede</text>
+  <!-- host linux + kvm -->
+  <rect x="30" y="388" width="940" height="80" rx="8" fill="#10261a" stroke="#39ff88"/>
+  <text x="50" y="414" font-size="16" fill="#39ff88" font-weight="700">HOST: Linux (ex.: Oracle Linux 8)</text>
+  <rect x="50" y="424" width="250" height="34" rx="6" fill="#0b120e" stroke="#39ff88"/><text x="175" y="446" text-anchor="middle" font-size="14" fill="#e6ede8">KVM (módulo do kernel)</text>
+  <rect x="320" y="424" width="250" height="34" rx="6" fill="#0b120e" stroke="#39ff88"/><text x="445" y="446" text-anchor="middle" font-size="14" fill="#e6ede8">QEMU (emula discos/rede)</text>
+  <rect x="590" y="424" width="360" height="34" rx="6" fill="#0b120e" stroke="#39ff88"/><text x="770" y="446" text-anchor="middle" font-size="14" fill="#e6ede8">libvirt · virsh · virt-manager</text>
+  <!-- VMs -->
+  <g>
+    <rect x="30" y="40" width="450" height="330" rx="10" fill="#0f1c26" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="50" y="70" font-size="18" fill="#5fd3ff" font-weight="700">VM (guest) vmprd</text>
+    <text x="50" y="96" font-size="14" fill="#7f9686">Oracle Linux 8 próprio · 4 vCPU · 16 GB</text>
+    <rect x="50" y="112" width="410" height="60" rx="6" fill="#0b120e" stroke="#e6ede8"/><text x="255" y="148" text-anchor="middle" font-size="15" fill="#e6ede8">Grid 19c (ASM) + banco cdbprd</text>
+    <text x="50" y="200" font-size="14" fill="#e6ede8">discos que a VM enxerga:</text>
+    <text x="50" y="226" font-size="13" fill="#ffcf5f">/dev/sda  → arquivo vmprd-os.qcow2</text>
+    <text x="50" y="250" font-size="13" fill="#ffcf5f">/dev/sdb  → arquivo vmprd-data1.img</text>
+    <text x="50" y="274" font-size="13" fill="#ffcf5f">/dev/sdc  → arquivo vmprd-data2.img</text>
+    <text x="50" y="298" font-size="13" fill="#ffcf5f">/dev/sdd  → arquivo vmprd-reco1.img</text>
+    <text x="50" y="340" font-size="13" fill="#7f9686">rede virtual: 192.168.122.11</text>
+  </g>
+  <g>
+    <rect x="520" y="40" width="450" height="330" rx="10" fill="#0f1c26" stroke="#5fd3ff" stroke-width="2"/>
+    <text x="540" y="70" font-size="18" fill="#5fd3ff" font-weight="700">VM (guest) vmstby</text>
+    <text x="540" y="96" font-size="14" fill="#7f9686">Oracle Linux 8 próprio · 4-6 vCPU · 24 GB</text>
+    <rect x="540" y="112" width="410" height="60" rx="6" fill="#0b120e" stroke="#e6ede8"/><text x="745" y="138" text-anchor="middle" font-size="15" fill="#e6ede8">Grid 19c (ASM + ACFS)</text><text x="745" y="160" text-anchor="middle" font-size="14" fill="#e6ede8">cdbstby (BI) + cdbdev1 + cdbhml1</text>
+    <text x="540" y="200" font-size="14" fill="#e6ede8">discos que a VM enxerga:</text>
+    <text x="540" y="226" font-size="13" fill="#ffcf5f">/dev/sda  → vmstby-os.qcow2</text>
+    <text x="540" y="250" font-size="13" fill="#ffcf5f">/dev/sdb..d → data1, data2, reco1</text>
+    <text x="540" y="274" font-size="13" fill="#ffcf5f">/dev/sde..f → acfs1, acfs2</text>
+    <text x="540" y="340" font-size="13" fill="#7f9686">rede virtual: 192.168.122.12</text>
+  </g>
+  <path d="M480 330 H520" stroke="#39ff88" stroke-width="3" stroke-dasharray="8 6"/>
+  <text x="500" y="320" text-anchor="middle" font-size="12" fill="#39ff88">redo</text>
+</svg>
